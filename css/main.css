@@ -11,6 +11,7 @@ body {
 	flex-direction: column; /* デフォルトは縦並び */
 	padding: 10px;
 	gap: 10px; /* box間のマージン */
+	width: 100%;
 }
 
 .box {
