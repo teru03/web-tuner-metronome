@@ -12,7 +12,7 @@ body {
 }
 
 .box {
-	background-color: white;
+	background-color: pink;
 	padding: 20px;
 	flex: 1;
 	min-eighht: 200px;
