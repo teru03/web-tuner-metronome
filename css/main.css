@@ -14,10 +14,11 @@ body {
 }
 
 .box {
-	background-color: pink;
+	background-color: white;
 	padding: 20px;
 	flex: 1;
-	min-eighht: 200px;
+	width: 100%;
+	height: 100vh;
 }
 
 /* 横画面（landscape）のときに横並びに変更 */
