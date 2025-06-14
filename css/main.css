@@ -1,3 +1,29 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #f0f0f0; /* マージン背景色 */
+}
+
+.container {
+	display: flex;
+	flex-direction: column; /* デフォルトは縦並び */
+	padding: 10px;
+	gap: 10px; /* box間のマージン */
+}
+
+.box {
+	background-color: white;
+	padding: 20px;
+	flex: 1;
+}
+
+/* 横画面（landscape）のときに横並びに変更 */
+@media (orientation: landscape) {
+	.container {
+		flex-direction: row;
+	}
+}
+
 #controls {
 	font-family:arial;
 	font-size:24px;
