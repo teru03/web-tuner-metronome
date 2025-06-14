@@ -137,8 +137,8 @@ function init(){
     canvasContext.strokeStyle = "#ffffff";
     canvasContext.lineWidth = 2;
 
-    window.onorientationchange = resetCanvas;
-    window.onresize = resetCanvas;
+    //window.onorientationchange = resetCanvas;
+    //window.onresize = resetCanvas;
 
     requestAnimFrame(draw);    // start the drawing loop.
 
