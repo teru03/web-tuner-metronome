@@ -2,6 +2,8 @@ body {
 	margin: 0;
 	padding: 0;
 	background-color: #f0f0f0; /* マージン背景色 */
+	width: 100%;
+	height:f 100%;
 }
 
 .container {
