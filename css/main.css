@@ -12,9 +12,10 @@ body {
 }
 
 .box {
-	background-color: white;
+	background-color: pink;
 	padding: 20px;
 	flex: 1;
+	min-eighht: 200px;
 }
 
 /* 横画面（landscape）のときに横並びに変更 */
@@ -78,13 +79,4 @@ body {
 
 * {
     -webkit-user-select: none;
-}
-
-body, html {
-    margin: 0;
-    height: 100%;
-    position: relative;
-}
-body {
-    overflow: auto;
 }
