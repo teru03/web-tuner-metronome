@@ -14,7 +14,13 @@ body {
 	width: 100%;
 }
 
-.box {
+.box-metronome {
+	background-color: pink;
+	padding: 20px;
+	flex: 1;
+}
+
+.box-tuner {
 	background-color: pink;
 	padding: 20px;
 	flex: 1;
