@@ -154,8 +154,8 @@ function init(){
 
     requestAnimFrame(draw);    // start the drawing loop.
 
-    const soundElements = document.querySelector(".sound input")
-    soundElements[0].addEventListener("change", () => {
+    const soundElement = document.querySelector(".sound input")
+    soundElement.addEventListener("change", () => {
         isSound = (isSound) ? false : true
     });
 
