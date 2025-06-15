@@ -18,6 +18,7 @@ var last16thNoteDrawn = -1; // the last "box" we drew on the screen
 var notesInQueue = [];      // the notes that have been put into the web audio,
                             // and may or may not have played yet. {note, time}
 var timerWorker = null;     // The Web Worker used to fire timer messages
+const isSound = false;
 
 
 // First, let's shim the requestAnimationFrame API, with a setTimeout fallback
@@ -54,8 +55,10 @@ function scheduleNote( beatNumber, time ) {
     else                        // other 16th notes = low pitch
         osc.frequency.value = 220.0;
 
-//    osc.start( time );
-//    osc.stop( time + noteLength );
+    if(isSound){
+        osc.start( time );
+        osc.stop( time + noteLength );
+    }
 }
 
 function scheduler() {
@@ -151,6 +154,11 @@ function init(){
 
     requestAnimFrame(draw);    // start the drawing loop.
 
+    document.querySelector(".sound input").addEventListener("change", () => {
+        isSound = (isSound) ? false : true
+    });
+
+
     timerWorker = new Worker("./metronome/js/metronomeworker.js");
 
     timerWorker.onmessage = function(e) {
@@ -162,5 +170,7 @@ function init(){
             console.log("message: " + e.data);
     };
     timerWorker.postMessage({"interval":lookahead});
+
+    
 }
 
