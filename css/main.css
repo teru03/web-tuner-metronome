@@ -15,10 +15,9 @@ body {
 }
 
 .box {
-	background-color: white;
+	background-color: pink;
 	padding: 20px;
 	flex: 1;
-	box-sizing: border-box;
 }
 
 /* 横画面（landscape）のときに横並びに変更 */
@@ -28,7 +27,8 @@ body {
 	}
 }
 
-.beatCanvas:{
+.beatCanvas {
+	background-color: red;
 	width: 100%;
 	height: 100%
 }
