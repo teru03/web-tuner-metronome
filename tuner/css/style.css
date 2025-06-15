@@ -1,63 +1,39 @@
 
-.notes {
-  margin: auto;
-  width: 400px;
-  position: fixed;
-  top: 50%;
-  left: 0;
-  right: 0;
-  text-align: center;
-}
-
-.notes {
-  margin: auto;
+.notes-wrapper {
   width: 100%;
-  max-width: 400px;
-  position: absolute; /* ★fixed → absolute に */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  overflow-x: auto;
+  mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
 }
 
-.note.active {
-  color: #e74c3c;
-}
 
 .notes-list {
-  overflow: auto;
-  overflow: -moz-scrollbars-none;
+  display: inline-block;
   white-space: nowrap;
-  -ms-overflow-style: none;
-  -webkit-mask-image: -webkit-linear-gradient(
-    left,
-    rgba(255, 255, 255, 0),
-    #fff,
-    rgba(255, 255, 255, 0)
-  );
+  font-family: sans-serif;
+  font-size: 80px;
+  padding: 20px 0;
+  text-align: center;
 }
+
 
 .notes-list::-webkit-scrollbar {
   display: none;
 }
 
+
 .note {
-  -webkit-tap-highlight-color: transparent;
+  display: inline-block;
+  margin: 0 20px;
+  color: #7f8c8d;
+  font-weight: bold;
+  position: relative;
 }
 
-.note span {
-  position: absolute;
-  right: 0.25em;
-  font-size: 48px;
-  font-weight: normal;
-}
-
-.note-sharp {
-  top: 0.3em;
-}
-
-.note-octave {
-  bottom: 0.3em;
+.note.active {
+  color: #e74c3c;
 }
 
 .frequency {
