@@ -6,6 +6,8 @@
   overflow-x: auto;
   mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+	flex-direction: row;
+
 }
 
 
