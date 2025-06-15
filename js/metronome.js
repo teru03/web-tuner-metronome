@@ -94,7 +94,7 @@ function play() {
 }
 
 function resetCanvas (e) {
-    const elements = document.querySelector('.beatCanvas');  
+    const elements = document.querySelector('beatCanvas');  
     const element = elements[0]  
     const parent = element.parentElement;    
     // resize the canvas - but remember - this clears the canvas too.
@@ -132,7 +132,7 @@ function draw() {
 }
 
 function init(){
-    var elements = document.getElementsByClassName( '.beatCanvas' );
+    var elements = document.getElementsByClassName( 'beatCanvas' );
 
     canvas = document.createElement( 'canvas' );
     canvasContext = canvas.getContext( '2d' );
@@ -145,7 +145,7 @@ function init(){
 
     requestAnimFrame(draw);    // start the drawing loop.
 
-    timerWorker = new Worker("js/metronomeworker.js");
+    timerWorker = new Worker("./js/metronomeworker.js");
 
     timerWorker.onmessage = function(e) {
         if (e.data == "tick") {
@@ -157,6 +157,4 @@ function init(){
     };
     timerWorker.postMessage({"interval":lookahead});
 }
-
-window.addEventListener("load", init );
 
