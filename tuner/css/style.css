@@ -7,14 +7,13 @@
   mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
 	flex-direction: row;
-  overflow-x: auto;
-  white-space: nowrap;
 }
 
 
 .notes-list {
   display: inline-block;
   white-space: nowrap;
+  min-width: max-content;  
   font-family: sans-serif;
   font-size: 80px;
   padding: 20px 0;
@@ -32,7 +31,6 @@
   margin: 0 20px;
   color: #7f8c8d;
   font-weight: bold;
-  position: relative;
 }
 
 .note.active {
