@@ -1,5 +1,5 @@
 body {
-	background-color: #f0f0f0; /* マージン背景色 */
+	background-color: lightgray; /* マージン背景色 */
 	margin: 0;
 	padding: 0;
 	width: 100%;
@@ -15,14 +15,14 @@ body {
 }
 
 .box-metronome {
-	background-color: pink;
+	background-color: white;
 	padding: 20px;
 	flex: 1;
 	min-height: 400px;
 }
 
 .box-tuner {
-	background-color: lightblue;
+	background-color: white;
 	padding: 20px;
 	flex: 1;
 	min-height: 400px;
@@ -99,7 +99,7 @@ body {
 }
 
 .beatCanvas {
-	background-color: red;
+	background-color: white;
 	position: absolute;
 	top: 200px;
 	left: 0px;
