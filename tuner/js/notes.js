@@ -3,7 +3,7 @@ const Notes = function (selector, tuner) {
   this.isAutoMode = true;
   this.$root = document.querySelector(selector);
   this.$notesList = this.$root.querySelector(".notes-list");
-//  this.$frequency = this.$root.querySelector(".frequency");
+  this.$frequency = this.$root.querySelector(".frequency");
   this.$notes = [];
   this.$notesMap = {};
   this.createNotes();
@@ -76,11 +76,9 @@ Notes.prototype.clearActive = function () {
 Notes.prototype.update = function (note) {
   if (note.value in this.$notesMap) {
     this.active(this.$notesMap[note.value]);
-/*    
     this.$frequency.childNodes[0].textContent = parseFloat(
       note.frequency
     ).toFixed(1);
-*/    
   }
 };
 
