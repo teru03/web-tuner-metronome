@@ -94,9 +94,11 @@ function play() {
 }
 
 function resetCanvas (e) {
+    const element = document.querySelector('.beatCanvas');    
+    const parent = element.parentElement;    
     // resize the canvas - but remember - this clears the canvas too.
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = parent.clientWidth
+    canvas.height = window.clientHeight;
 
     //make sure we scroll to the top left.
     window.scrollTo(0,0); 
@@ -137,8 +139,8 @@ function init(){
     canvasContext.strokeStyle = "#ffffff";
     canvasContext.lineWidth = 2;
 
-    //window.onorientationchange = resetCanvas;
-    //window.onresize = resetCanvas;
+//    window.onorientationchange = resetCanvas;
+    window.onresize = resetCanvas;
 
     requestAnimFrame(draw);    // start the drawing loop.
 

@@ -34,6 +34,7 @@ body {
 }
 
 #controls {
+	position: relative;
 	font-family:arial;
 	font-size:24px;
 	font-weight:bold;
