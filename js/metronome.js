@@ -131,7 +131,7 @@ function draw() {
 }
 
 function init(){
-    var container = document.createElementByClassName( 'beatCanvas' );
+    var container = document.createElementByClassName( '.beatCanvas' );
 
     canvas = document.createElement( 'canvas' );
     canvasContext = canvas.getContext( '2d' );
