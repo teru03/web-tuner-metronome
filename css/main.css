@@ -46,6 +46,7 @@ body {
 
 .metronome-controls {
 	position: absolute;
+	flex-direction: column; /* デフォルトは縦並び */
 	top: 0px;
 	left: 0px;
 	font-family:arial;
