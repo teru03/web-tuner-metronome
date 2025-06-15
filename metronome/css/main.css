@@ -26,6 +26,8 @@ body {
 	padding: 20px;
 	flex: 1;
 	min-height: 400px;
+	position: relative; /* ★親基準にする */
+	overflow: hidden;    /* はみ出し防止（必要に応じて） */	
 }
 
 /* 横画面（landscape）のときに横並びに変更 */

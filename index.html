@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width user-scalable=no">
     <title>Metronome</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="metronome/css/main.css">
+    <link rel="stylesheet" href="tuner/css/style.css">
     <script src="//cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js"></script>
-    <script src="js/metronome.js"></script>
-    <script src="js/metronomeworker.js"></script>
+    <script src="metronome/js/metronome.js"></script>
+    <script src="metronome/js/metronomeworker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aubiojs@0.1.1/build/aubio.min.js"></script>
+    <script src="tuner/js/tuner.js"></script>
+    <script src="tuner/js/meter.js"></script>
+    <script src="tuner/js/frequency-bars.js"></script>
+    <script src="tuner/js/notes.js"></script>
+    <script src="tuner/js/app.js"></script>
+
   </head>
   <body class="container" onload="init();">
     <div class="box-metronome">
-      Box metronome
       <div class="metronome-controls">        
         <div class="metronome-play">
           <a class="play" onclick="this.innerText = play();">play</a>
@@ -26,11 +34,25 @@
         </div>
       </div>
       <div class="beatCanvas">
-        canvas
       </div>
     </div>
     <div class="box-tuner">
-      Box tuner
+      <canvas class="frequency-bars"></canvas>
+      <div class="meter">
+        <div class="meter-dot"></div>
+        <div class="meter-pointer"></div>
+      </div>
+      <div class="notes">
+        <div class="notes-list"></div>
+        <div class="frequency">
+          <span>Hz</span>
+        </div>
+      </div>
+      <div class="a4">A<sub>4</sub> = <span>440</span> Hz</div>
+      <label class="auto">
+        Auto
+        <input type="checkbox" checked />
+      </label>
     </div>
   </body>
 </html>
