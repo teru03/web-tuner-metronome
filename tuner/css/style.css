@@ -40,6 +40,8 @@
 
 .frequency {
   font-size: 32px;
+  text-align: center;      /* 中央揃え */
+  margin-top: 10px;        /* 上との余白 */
 }
 
 .frequency span {
