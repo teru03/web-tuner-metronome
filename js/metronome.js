@@ -94,7 +94,8 @@ function play() {
 }
 
 function resetCanvas (e) {
-    const element = document.querySelector('.beatCanvas');    
+    const elements = document.querySelector('.beatCanvas');  
+    const element = elements[0]  
     const parent = element.parentElement;    
     // resize the canvas - but remember - this clears the canvas too.
     canvas.width = parent.clientWidth
@@ -131,11 +132,11 @@ function draw() {
 }
 
 function init(){
-    var container = document.getElementsByClassName( '.beatCanvas' );
+    var elements = document.getElementsByClassName( '.beatCanvas' );
 
     canvas = document.createElement( 'canvas' );
     canvasContext = canvas.getContext( '2d' );
-    container.appendChild(canvas);    
+    elements[0].appendChild(canvas);    
     canvasContext.strokeStyle = "#ffffff";
     canvasContext.lineWidth = 2;
 
