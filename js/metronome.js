@@ -131,6 +131,10 @@ function draw() {
     requestAnimFrame(draw);
 }
 
+/**
+ * 初期化
+ * Canvas生成
+ */
 function init(){
     var elements = document.getElementsByClassName( 'beatCanvas' );
 
@@ -139,6 +143,8 @@ function init(){
     elements[0].appendChild(canvas);    
     canvasContext.strokeStyle = "#ffffff";
     canvasContext.lineWidth = 2;
+    canvas.width = elements[0].clientWidth;
+    canvas.height = elements[0].clientHeight;
 
 //    window.onorientationchange = resetCanvas;
     window.onresize = resetCanvas;
