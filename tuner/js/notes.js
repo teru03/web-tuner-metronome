@@ -63,7 +63,7 @@ Notes.prototype.active = function ($note) {
   this.clearActive();
   $note.classList.add("active");
   console.log(`OffsetLeft : ${$note.offsetLeft}, nodeList.clientWidth: ${this.$notesList.clientWidth}, note.clientWidth: ${$note.clientWidth}`)
-  this.$notesList.scrollLeft =
+  this.$root.scrollLeft =
     $note.offsetLeft - (this.$notesList.clientWidth - $note.clientWidth) / 2;
 };
 
