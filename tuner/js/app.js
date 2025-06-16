@@ -22,18 +22,19 @@ Application.prototype.initA4 = function () {
 Application.prototype.start = function () {
   const self = this;
 
-  this.tuner.onNoteDetected = function (note) {
-    if (self.notes.isAutoMode) {
-      if (self.lastNote === note.name) {
-        self.update(note);
-      } else {
-        self.lastNote = note.name;
-      }
-    }
-  };
+  // Create a start button if it doesn't exist
+  if (!document.querySelector('.start-button')) {
+    const startButton = document.createElement('button');
+    startButton.className = 'start-button';
+    startButton.textContent = 'チューナーを開始';
+    startButton.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 18px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;';
+    document.body.appendChild(startButton);
 
-  self.tuner.init();
-  self.frequencyData = new Uint8Array(self.tuner.analyser.frequencyBinCount);
+    startButton.addEventListener('click', function() {
+      startButton.style.display = 'none';
+      self.initializeAudio();
+    });
+  }
 
   this.$a4.addEventListener("click", function () {
     swal
@@ -57,11 +58,31 @@ Application.prototype.start = function () {
       });
   });
 
-//  this.updateFrequencyBars();
-
   document.querySelector(".auto input").addEventListener("change", () => {
     this.notes.toggleAutoMode();
   });
+};
+
+Application.prototype.initializeAudio = function() {
+  const self = this;
+
+  this.tuner.onNoteDetected = function (note) {
+    if (self.notes.isAutoMode) {
+      if (self.lastNote === note.name) {
+        self.update(note);
+      } else {
+        self.lastNote = note.name;
+      }
+    }
+  };
+
+  try {
+    self.tuner.init();
+    self.frequencyData = new Uint8Array(self.tuner.analyser.frequencyBinCount);
+  } catch (error) {
+    console.error('Failed to initialize tuner:', error);
+    alert('チューナーの初期化に失敗しました。ページを再読み込みしてください。');
+  }
 };
 
 Application.prototype.updateFrequencyBars = function () {

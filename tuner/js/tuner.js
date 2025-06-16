@@ -56,53 +56,83 @@ Tuner.prototype.initGetUserMedia = function () {
 
 Tuner.prototype.startRecord = function () {
   const self = this;
+  
+  // Ensure audio context is running
+  if (this.audioContext.state === 'suspended') {
+    this.audioContext.resume();
+  }
+
   navigator.mediaDevices
-    .getUserMedia({ audio: true })
+    .getUserMedia({ 
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      } 
+    })
     .then(function (stream) {
-      self.audioContext.createMediaStreamSource(stream).connect(self.analyser);
-      self.analyser.connect(self.scriptProcessor);
-      self.scriptProcessor.connect(self.audioContext.destination);
-      self.scriptProcessor.addEventListener("audioprocess", function (event) {
-        const frequency = self.pitchDetector.do(
-          event.inputBuffer.getChannelData(0)
-        );
-        if (frequency && self.onNoteDetected) {
-          const note = self.getNote(frequency);
-          self.onNoteDetected({
-            name: self.noteStrings[note % 12],
-            value: note,
-            cents: self.getCents(frequency, note),
-            octave: parseInt(note / 12) - 1,
-            frequency: frequency,
-          });
-        }
-      });
+      const source = self.audioContext.createMediaStreamSource(stream);
+      source.connect(self.analyser);
+      
+      if (self.scriptProcessor) {
+        self.analyser.connect(self.scriptProcessor);
+        self.scriptProcessor.connect(self.audioContext.destination);
+      }
     })
     .catch(function (error) {
-      alert(error.name + ": " + error.message);
+      console.error('Error accessing microphone:', error);
+      alert("マイクへのアクセスができません。ブラウザの設定でマイクの使用を許可してください。\n" + error.message);
     });
+};
 };
 
 Tuner.prototype.init = function () {
-  this.audioContext = new window.AudioContext();
-  this.analyser = this.audioContext.createAnalyser();
-  this.scriptProcessor = this.audioContext.createScriptProcessor(
-    this.bufferSize,
-    1,
-    1
-  );
+  try {
+    // Ensure we're responding to a user gesture
+    if (this.audioContext === undefined) {
+      this.audioContext = new window.AudioContext();
+    }
+    
+    // Resume the audio context if it's suspended
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
 
-  const self = this;
+    // Use a smaller buffer size for Android Chrome to reduce latency
+    this.bufferSize = /Android/i.test(navigator.userAgent) ? 2048 : 4096;
+    
+    this.analyser = this.audioContext.createAnalyser();
+    
+    // For newer browsers, use AudioWorkletNode instead of ScriptProcessor
+    if (this.audioContext.audioWorklet) {
+      this.initializeWorklet();
+    } else {
+      this.scriptProcessor = this.audioContext.createScriptProcessor(
+        this.bufferSize,
+        1,
+        1
+      );
+      this.initializeScriptProcessor();
+    }
 
-  aubio().then(function (aubio) {
-    self.pitchDetector = new aubio.Pitch(
-      "default",
-      self.bufferSize,
-      1,
-      self.audioContext.sampleRate
-    );
-    self.startRecord();
-  });
+    const self = this;
+    
+    aubio().then(function (aubio) {
+      self.pitchDetector = new aubio.Pitch(
+        "default",
+        self.bufferSize,
+        1,
+        self.audioContext.sampleRate
+      );
+      self.startRecord();
+    }).catch(function(error) {
+      console.error('Failed to initialize aubio:', error);
+      alert('Failed to initialize audio processing. Please try reloading the page.');
+    });
+  } catch (error) {
+    console.error('Error initializing audio:', error);
+    alert('Failed to initialize audio. Please ensure you\'re using a supported browser and have granted microphone permissions.');
+  }
 };
 
 /**
@@ -157,5 +187,87 @@ Tuner.prototype.stopOscillator = function () {
   if (this.oscillator) {
     this.oscillator.stop();
     this.oscillator = null;
+  }
+};
+
+Tuner.prototype.initializeScriptProcessor = function() {
+  const self = this;
+  this.scriptProcessor.addEventListener("audioprocess", function (event) {
+    const frequency = self.pitchDetector.do(
+      event.inputBuffer.getChannelData(0)
+    );
+    if (frequency && self.onNoteDetected) {
+      const note = self.getNote(frequency);
+      self.onNoteDetected({
+        name: self.noteStrings[note % 12],
+        value: note,
+        cents: self.getCents(frequency, note),
+        octave: parseInt(note / 12) - 1,
+        frequency: frequency,
+      });
+    }
+  });
+};
+
+Tuner.prototype.initializeWorklet = async function() {
+  const workletCode = `
+    class TunerProcessor extends AudioWorkletProcessor {
+      constructor() {
+        super();
+        this.port.onmessage = (e) => {
+          if (e.data.type === 'init') {
+            // Initialize any necessary processing here
+          }
+        };
+      }
+
+      process(inputs, outputs, parameters) {
+        if (inputs[0] && inputs[0][0]) {
+          this.port.postMessage({
+            type: 'audio',
+            data: inputs[0][0]
+          });
+        }
+        return true;
+      }
+    }
+    registerProcessor('tuner-processor', TunerProcessor);
+  `;
+
+  const blob = new Blob([workletCode], { type: 'application/javascript' });
+  const workletUrl = URL.createObjectURL(blob);
+  
+  try {
+    await this.audioContext.audioWorklet.addModule(workletUrl);
+    const workletNode = new AudioWorkletNode(this.audioContext, 'tuner-processor');
+    
+    workletNode.port.onmessage = (e) => {
+      if (e.data.type === 'audio') {
+        const frequency = this.pitchDetector.do(e.data.data);
+        if (frequency && this.onNoteDetected) {
+          const note = this.getNote(frequency);
+          this.onNoteDetected({
+            name: this.noteStrings[note % 12],
+            value: note,
+            cents: this.getCents(frequency, note),
+            octave: parseInt(note / 12) - 1,
+            frequency: frequency,
+          });
+        }
+      }
+    };
+
+    this.analyser.connect(workletNode);
+    workletNode.connect(this.audioContext.destination);
+  } catch (error) {
+    console.warn('AudioWorklet not supported, falling back to ScriptProcessor:', error);
+    this.scriptProcessor = this.audioContext.createScriptProcessor(
+      this.bufferSize,
+      1,
+      1
+    );
+    this.initializeScriptProcessor();
+  } finally {
+    URL.revokeObjectURL(workletUrl);
   }
 };
