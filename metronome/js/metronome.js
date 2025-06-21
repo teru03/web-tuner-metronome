@@ -172,6 +172,13 @@ function init(){
     };
     timerWorker.postMessage({"interval":lookahead});
 
+    const tempoInput = document.getElementById("tempo");
+    const tempoDisplay = document.getElementsByClassName("metronome-showTempo")[0];
+
+    tempoInput.addEventListener("input", (event) => {
+        tempo = event.target.value;
+        tempoDisplay.innerText = tempo;
+    });
     
 }
 
