@@ -18,14 +18,14 @@ body {
 	background-color: white;
 	padding: 20px;
 	flex: 1;
-	min-height: 450px;
+	min-height: 400px;
 }
 
 .box-tuner {
 	background-color: white;
 	padding: 20px;
 	flex: 1;
-	min-height: 450px;
+	min-height: 400px;
 	position: relative; /* ★親基準にする */
 	overflow: hidden;    /* はみ出し防止（必要に応じて） */	
 }
@@ -101,7 +101,7 @@ body {
 .beatCanvas {
 	background-color: white;
 	position: absolute;
-	top: 200px;
+	top: 250px;
 	left: 0px;
 	margin: 15px;
 	display:inline-block;
