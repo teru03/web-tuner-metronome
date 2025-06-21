@@ -43,7 +43,7 @@ body {
 	display: flex;
 	top: 0px;
 	left: 0px;
-	height: 330px;
+	height: 270px;
 	font-family:arial;
 	font-size:24px;
 	font-weight:bold;
@@ -102,7 +102,7 @@ body {
 .beatCanvas {
 	background-color: white;
 	position: absolute;
-	top: 350px;
+	top: 300px;
 	left: 0px;
 	margin: 15px;
 	display:inline-block;
