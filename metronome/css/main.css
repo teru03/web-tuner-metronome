@@ -43,12 +43,12 @@ body {
 	display: flex;
 	top: 0px;
 	left: 0px;
-	height: 230px;
+	height: 330px;
 	font-family:arial;
 	font-size:24px;
 	font-weight:bold;
 	margin: 15px;
-	background-color: white;
+	background-color: lightgrey;
 	
 }
 
@@ -102,7 +102,7 @@ body {
 .beatCanvas {
 	background-color: white;
 	position: absolute;
-	top: 250px;
+	top: 350px;
 	left: 0px;
 	margin: 15px;
 	display:inline-block;
