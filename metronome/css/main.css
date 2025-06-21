@@ -43,6 +43,7 @@ body {
 	display: flex;
 	top: 0px;
 	left: 0px;
+	height: 230px;
 	font-family:arial;
 	font-size:24px;
 	font-weight:bold;
