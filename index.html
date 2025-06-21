@@ -16,6 +16,14 @@
     <script src="tuner/js/frequency-bars.js"></script>
     <script src="tuner/js/notes.js"></script>
     <script src="tuner/js/app.js"></script>
+    <script>
+	const tempoInput = document.getElementById("tempo");
+	const tempoDisplay = document.getElementsByClassName("metronome-showTempo")[0];
+	tempoInput.addEventListener("input", (event) => {
+           tempo = event.target.value;
+	   tempoDisplay.innerText = tempo;
+	});
+    </script>
 
   </head>
   <body class="container" onload="init(); initTuner();">
@@ -27,8 +35,7 @@
         <div class="metronome-tempoBox">Tempo: 
           <span class="metronome-showTempo">120</span>
 	  BPM 
-	  <input id="tempo" type="range" min="30.0" max="160.0" step="1" value="120" style="height: 20px; width: 200px" 
-	  onInput="tempo = event.target.value; document.getElementByClassName('metronome-showTempo')[0].innerText=tempo;">
+	  <input id="tempo" type="range" min="30.0" max="160.0" step="1" value="120" style="height: 20px; width: 200px" />
         </div>
         <div>Resolution:
 	        <select onchange="noteResolution = this.selectedIndex;">
