@@ -1,0 +1,450 @@
+body {
+  background-color: lightgray;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  gap: 10px;
+  width: 100%;
+}
+
+.box-metronome {
+  background-color: white;
+  padding: 10px;
+  flex: 1;
+  min-height: 400px;
+  position: relative;
+}
+
+.box-tuner {
+  background-color: white;
+  padding: 10px;
+  flex: 1;
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (orientation: landscape) {
+  .container {
+    flex-direction: row;
+  }
+}
+
+.metronome-controls {
+  position: absolute;
+  flex-direction: column;
+  display: flex;
+  top: 10px;
+  left: 10px;
+  right: 20px;
+  height: 270px;
+  font-family: arial;
+  font-size: 24px;
+  font-weight: bold;
+  background-color: lightgrey;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.metronome-controls * {
+  margin: 5px;
+  display: inline-block;
+}
+
+.metronome-play {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metronome-start-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.metronome-start-btn:hover {
+  background-color: #45a049;
+}
+
+.metronome-start-btn.active {
+  background-color: #f44336;
+}
+
+.metronome-start-btn.active:hover {
+  background-color: #d32f2f;
+}
+
+.metronome-showTempo {
+  display: inline-block;
+  width: 45px;
+}
+
+.tempo-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.tempo-btn {
+  width: 80px;
+  height: 80px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.tempo-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.tempo-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.tempo-btn:hover {
+  background: #e8e8e8;
+}
+
+.tempo-btn:active {
+  background: #d8d8d8;
+}
+
+.tempo-input {
+  flex: 1;
+  height: 80px;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-right: none;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  outline: none;
+}
+
+.tempo-input:focus {
+  border-color: #007AFF;
+  box-shadow: 0 0 0 1px #007AFF;
+}
+
+.resolution-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resolution-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.resolution-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.resolution-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.resolution-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.resolution-btn:hover {
+  background: #e8e8e8;
+}
+
+.resolution-btn.active {
+  background: #007AFF;
+  color: white;
+  border-color: #007AFF;
+}
+
+.beatCanvas {
+  background-color: white;
+  position: absolute;
+  top: 320px;
+  left: 20px;
+  right: 20px;
+  height: 50px;
+  display: block;
+}
+
+.beatCanvas canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.notes-wrapper {
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  right: 20px;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  overflow-x: auto;
+  mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  flex-direction: row;
+}
+
+.notes-list {
+  display: inline-block;
+  white-space: nowrap;
+  min-width: max-content;
+  font-family: sans-serif;
+  font-size: 80px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.notes-list::-webkit-scrollbar {
+  display: none;
+}
+
+.note {
+  display: inline-block;
+  margin: 0 20px;
+  color: #7f8c8d;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.note.active {
+  color: #e74c3c;
+}
+
+.frequency {
+  position: absolute;
+  top: 220px;
+  left: 20px;
+  right: 20px;
+  font-size: 32px;
+  text-align: center;
+  margin: 0;
+}
+
+.frequency span {
+  font-size: 50%;
+  margin-left: 0.25em;
+}
+
+.meter {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 5%;
+  width: 100%;
+  max-width: 400px;
+  height: 25%;
+  margin: 0 auto;
+}
+
+.meter-pointer {
+  width: 2px;
+  height: 100%;
+  background: #2c3e50;
+  transform: rotate(45deg);
+  transform-origin: bottom;
+  transition: transform 0.5s;
+  position: absolute;
+  right: 50%;
+}
+
+.meter-dot {
+  width: 10px;
+  height: 10px;
+  background: #2c3e50;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -5px;
+  right: 50%;
+  margin-right: -4px;
+}
+
+.meter-scale {
+  width: 1px;
+  height: 100%;
+  transform-origin: bottom;
+  transition: transform 0.2s;
+  box-sizing: border-box;
+  border-top: 10px solid;
+  position: absolute;
+  right: 50%;
+}
+
+.meter-scale-strong {
+  width: 2px;
+  border-top-width: 20px;
+}
+
+.tuner-controls .a4 {
+  position: static;
+  margin: 0;
+}
+
+.a4 span {
+  color: #e74c3c;
+  cursor: pointer;
+}
+
+.tuner-controls .auto {
+  position: static;
+  margin: 0;
+}
+
+.sound {
+  font-size: 16px;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.sound input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.tuner-controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: lightgrey;
+  padding: 10px;
+  box-sizing: border-box;
+  font-family: arial;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.tuner-play {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.tuner-start-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.tuner-start-btn:hover {
+  background-color: #45a049;
+}
+
+.tuner-start-btn.active {
+  background-color: #f44336;
+}
+
+.tuner-start-btn.active:hover {
+  background-color: #d32f2f;
+}
+
+.a4-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+}
+
+.a4-stepper {
+  display: flex;
+  gap: 0;
+}
+
+.a4-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.a4-btn:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.a4-btn:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.a4-btn:hover {
+  background: #e8e8e8;
+}
+
+.a4-btn:active {
+  background: #d8d8d8;
+}
+
+.a4-input {
+  width: 50px;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-right: none;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  outline: none;
+}
+
+.a4-input:focus {
+  border-color: #007AFF;
+  box-shadow: 0 0 0 1px #007AFF;
+}
+
+@media (max-width: 768px) {
+  .meter {
+    width: 100%;
+  }
+}
