@@ -237,7 +237,7 @@ export default function Tuner() {
               onClick={handleToggleTuner}
               className={`tuner-start-btn ${isTunerActive ? 'active' : ''}`}
             >
-              {isTunerActive ? 'チューナーを停止' : 'チューナーを開始'}
+              {isTunerActive ? 'Stop' : 'Start'}
             </button>
             <div className="a4-controls">
               <span>A<sub>4</sub> =</span>

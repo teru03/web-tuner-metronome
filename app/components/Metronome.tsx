@@ -84,13 +84,16 @@ export default function Metronome() {
 
         if (last16thNoteDrawnRef.current !== currentNote) {
           const x = Math.floor(canvas.width / 18)
+          const radius = Math.min(x / 4, canvas.height / 4)
           canvasContext.clearRect(0, 0, canvas.width, canvas.height)
           
           for (let i = 0; i < 16; i++) {
             canvasContext.fillStyle = currentNote === i 
               ? (currentNote % 4 === 0 ? 'red' : 'blue') 
               : 'black'
-            canvasContext.fillRect(x * (i + 1), x, x / 2, x / 2)
+            canvasContext.beginPath()
+            canvasContext.arc(x * (i + 1) + x / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
+            canvasContext.fill()
           }
           last16thNoteDrawnRef.current = currentNote
         }
@@ -182,7 +185,7 @@ export default function Metronome() {
             className={`metronome-start-btn ${isPlaying ? 'active' : ''}`}
             onClick={handlePlay}
           >
-            {isPlaying ? 'メトロノームを停止' : 'メトロノームを開始'}
+            {isPlaying ? 'Stop' : 'Start'}
           </button>
           <label className="sound">
             Sound

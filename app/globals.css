@@ -49,7 +49,6 @@ body {
   font-size: 24px;
   font-weight: bold;
   background-color: lightgrey;
-  padding: 10px;
   box-sizing: border-box;
 }
 
@@ -59,10 +58,10 @@ body {
 }
 
 .metronome-play {
-  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 5px;
 }
 
 .metronome-start-btn {
@@ -87,6 +86,13 @@ body {
 .metronome-start-btn.active:hover {
   background-color: #d32f2f;
 }
+
+.metronome-tempoBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 
 .metronome-showTempo {
   display: inline-block;
