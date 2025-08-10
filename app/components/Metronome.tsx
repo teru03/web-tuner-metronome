@@ -6,7 +6,7 @@ export default function Metronome() {
   const [tempo, setTempo] = useState(120)
   const [isPlaying, setIsPlaying] = useState(false)
   const [noteResolution, setNoteResolution] = useState(0)
-  const [isSound, setIsSound] = useState(false)
+  const [isSound, setIsSound] = useState(true)
   const [playButtonText, setPlayButtonText] = useState('play')
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -89,7 +89,7 @@ export default function Metronome() {
           
           for (let i = 0; i < 16; i++) {
             canvasContext.fillStyle = currentNote === i 
-              ? (currentNote % 4 === 0 ? 'red' : 'blue') 
+              ? (currentNote % 4 === 0 ? 'crimson' : 'green') 
               : 'black'
             canvasContext.beginPath()
             canvasContext.arc(x * (i + 1) + x / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
@@ -108,7 +108,7 @@ export default function Metronome() {
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
     }
-  }, [])
+  }, [noteResolution])
 
   const nextNote = () => {
     const secondsPerBeat = 60.0 / tempo
@@ -122,25 +122,36 @@ export default function Metronome() {
   const scheduleNote = (beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
-    if ((noteResolution === 1) && (beatNumber % 2)) return
-    if ((noteResolution === 2) && (beatNumber % 4)) return
+    // Skip notes based on resolution - use current noteResolution value
+    const currentResolution = noteResolution
+    if (currentResolution === 1 && (beatNumber % 2 !== 0)) return  // 8th notes: skip odd beats
+    if (currentResolution === 2 && (beatNumber % 4 !== 0)) return  // Quarter notes: skip non-quarter beats
 
     const audioContext = audioContextRef.current
     if (!audioContext || !isSound) return
 
+    // Create click sound using noise and filtering
     const osc = audioContext.createOscillator()
-    osc.connect(audioContext.destination)
+    const gainNode = audioContext.createGain()
+    const filter = audioContext.createBiquadFilter()
     
-    if (beatNumber % 16 === 0) {
-      osc.frequency.value = 880.0
-    } else if (beatNumber % 4 === 0) {
-      osc.frequency.value = 440.0
-    } else {
-      osc.frequency.value = 220.0
-    }
-
+    osc.type = 'square'
+    osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+    
+    filter.type = 'highpass'
+    filter.frequency.value = 1000
+    
+    osc.connect(filter)
+    filter.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    // Sharp attack and quick decay for click sound
+    gainNode.gain.setValueAtTime(0, time)
+    gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
+    
     osc.start(time)
-    osc.stop(time + 0.05)
+    osc.stop(time + 0.02)
   }
 
   const scheduler = () => {
@@ -153,7 +164,7 @@ export default function Metronome() {
     }
   }
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
     }
@@ -161,7 +172,16 @@ export default function Metronome() {
     const audioContext = audioContextRef.current
     
     if (audioContext.state === 'suspended') {
-      audioContext.resume()
+      await audioContext.resume()
+    }
+
+    // Unlock audio context with a silent buffer
+    if (audioContext.state === 'running' && isSound) {
+      const buffer = audioContext.createBuffer(1, 1, 22050)
+      const source = audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(audioContext.destination)
+      source.start(0)
     }
 
     if (!isPlaying) {
@@ -238,7 +258,7 @@ export default function Metronome() {
               className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
               onClick={() => setNoteResolution(2)}
             >
-              Quarter
+              4th
             </button>
           </div>
         </div>
