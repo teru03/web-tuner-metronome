@@ -305,7 +305,6 @@ export default function Metronome() {
           </div>
         </div>
         <div className="time-signature-controls">
-          <span>Time:</span>
           <div className="time-signature-buttons">
             <button 
               className={`time-signature-btn ${timeSignature === 0 ? 'active' : ''}`}
