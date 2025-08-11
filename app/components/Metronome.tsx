@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 export default function Metronome() {
-  const [tempo, setTempo] = useState(120)
+  const [tempo, setTempo] = useState(80)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [noteResolution, setNoteResolution] = useState(0)
-  const [isSound, setIsSound] = useState(false)
+  const [noteResolution, setNoteResolution] = useState(2)
+  const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
+  const [isSound, setIsSound] = useState(true)
   const [playButtonText, setPlayButtonText] = useState('play')
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -83,14 +84,33 @@ export default function Metronome() {
         }
 
         if (last16thNoteDrawnRef.current !== currentNote) {
-          const x = Math.floor(canvas.width / 18)
+          // Determine number of beats based on time signature
+          let beatsCount = 16 // default 4/4
+          if (timeSignature === 0) beatsCount = 8  // 2/4
+          if (timeSignature === 1) beatsCount = 12 // 3/4
+          if (timeSignature === 3) beatsCount = 12 // 6/8
+          const x = Math.floor(canvas.width / (beatsCount + 2))
+          const radius = Math.min(x / 4, canvas.height / 4)
           canvasContext.clearRect(0, 0, canvas.width, canvas.height)
           
-          for (let i = 0; i < 16; i++) {
-            canvasContext.fillStyle = currentNote === i 
-              ? (currentNote % 4 === 0 ? 'red' : 'blue') 
-              : 'black'
-            canvasContext.fillRect(x * (i + 1), x, x / 2, x / 2)
+          for (let i = 0; i < beatsCount; i++) {
+            let fillColor = '#ebf6f7'
+            if (currentNote === i) {
+              // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
+              if (timeSignature === 3 && noteResolution === 1 && (i === 0 || i === 6)) {
+                fillColor = 'crimson'
+              } else if (timeSignature === 3 && noteResolution === 1) {
+                fillColor = 'green' // Other 8th notes in 6/8
+              } else if (currentNote % 4 === 0) {
+                fillColor = 'crimson'
+              } else {
+                fillColor = 'green'
+              }
+            }
+            canvasContext.fillStyle = fillColor
+            canvasContext.beginPath()
+            canvasContext.arc(x * (i + 1) + x / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
+            canvasContext.fill()
           }
           last16thNoteDrawnRef.current = currentNote
         }
@@ -105,13 +125,19 @@ export default function Metronome() {
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
     }
-  }, [])
+  }, [noteResolution, timeSignature])
 
   const nextNote = () => {
     const secondsPerBeat = 60.0 / tempo
-    nextNoteTimeRef.current += 0.25 * secondsPerBeat
+    // For 6/8 time, adjust timing to make 6 beats per second at tempo 60
+    const timeIncrement = timeSignature === 3 ? (1.0 / 6.0) * secondsPerBeat : 0.25 * secondsPerBeat
+    nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
-    if (current16thNoteRef.current === 16) {
+    let maxBeats = 16 // default 4/4
+    if (timeSignature === 0) maxBeats = 8  // 2/4
+    if (timeSignature === 1) maxBeats = 12 // 3/4
+    if (timeSignature === 3) maxBeats = 12 // 6/8
+    if (current16thNoteRef.current === maxBeats) {
       current16thNoteRef.current = 0
     }
   }
@@ -119,25 +145,55 @@ export default function Metronome() {
   const scheduleNote = (beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
-    if ((noteResolution === 1) && (beatNumber % 2)) return
-    if ((noteResolution === 2) && (beatNumber % 4)) return
+    // Skip notes based on time signature and resolution
+    if (timeSignature === 0) { // 2/4 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4) return // Quarter: 1st and 5th
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7
+      // 16th: all beats (no skip)
+    } else if (timeSignature === 1) { // 3/4 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
+      // 16th: all beats (no skip)
+    } else if (timeSignature === 3) { // 6/8 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
+      // 16th: all beats (no skip)
+    } else {
+      // Other time signatures (keep original logic)
+      if (noteResolution === 1 && (beatNumber % 2 !== 0)) return
+      if (noteResolution === 2 && (beatNumber % 4 !== 0)) return
+    }
 
     const audioContext = audioContextRef.current
     if (!audioContext || !isSound) return
 
+    // Create click sound using noise and filtering
     const osc = audioContext.createOscillator()
-    osc.connect(audioContext.destination)
+    const gainNode = audioContext.createGain()
+    const filter = audioContext.createBiquadFilter()
     
-    if (beatNumber % 16 === 0) {
-      osc.frequency.value = 880.0
-    } else if (beatNumber % 4 === 0) {
-      osc.frequency.value = 440.0
+    osc.type = 'square'
+    // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
+    if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
+      osc.frequency.value = 1200 // Higher pitch for emphasis
     } else {
-      osc.frequency.value = 220.0
+      osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
     }
-
+    
+    filter.type = 'highpass'
+    filter.frequency.value = 1000
+    
+    osc.connect(filter)
+    filter.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    // Sharp attack and quick decay for click sound
+    gainNode.gain.setValueAtTime(0, time)
+    gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
+    
     osc.start(time)
-    osc.stop(time + 0.05)
+    osc.stop(time + 0.02)
   }
 
   const scheduler = () => {
@@ -150,7 +206,7 @@ export default function Metronome() {
     }
   }
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
     }
@@ -158,7 +214,16 @@ export default function Metronome() {
     const audioContext = audioContextRef.current
     
     if (audioContext.state === 'suspended') {
-      audioContext.resume()
+      await audioContext.resume()
+    }
+
+    // Unlock audio context with a silent buffer
+    if (audioContext.state === 'running' && isSound) {
+      const buffer = audioContext.createBuffer(1, 1, 22050)
+      const source = audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(audioContext.destination)
+      source.start(0)
     }
 
     if (!isPlaying) {
@@ -182,7 +247,7 @@ export default function Metronome() {
             className={`metronome-start-btn ${isPlaying ? 'active' : ''}`}
             onClick={handlePlay}
           >
-            {isPlaying ? 'メトロノームを停止' : 'メトロノームを開始'}
+            {isPlaying ? 'Stop' : 'Start'}
           </button>
           <label className="sound">
             Sound
@@ -220,22 +285,51 @@ export default function Metronome() {
         <div className="resolution-controls">
           <div className="resolution-buttons">
             <button 
-              className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
-              onClick={() => setNoteResolution(0)}
+              className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
+              onClick={() => setNoteResolution(2)}
             >
-              16th
+              4分音符
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 1 ? 'active' : ''}`}
               onClick={() => setNoteResolution(1)}
             >
-              8th
+              8分音符
             </button>
             <button 
-              className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
-              onClick={() => setNoteResolution(2)}
+              className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
+              onClick={() => setNoteResolution(0)}
             >
-              Quarter
+              16分音符
+            </button>
+          </div>
+        </div>
+        <div className="time-signature-controls">
+          <span>Time:</span>
+          <div className="time-signature-buttons">
+            <button 
+              className={`time-signature-btn ${timeSignature === 0 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(0)}
+            >
+              2/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 1 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(1)}
+            >
+              3/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 2 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(2)}
+            >
+              4/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 3 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(3)}
+            >
+              6/8
             </button>
           </div>
         </div>
