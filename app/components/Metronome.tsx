@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 export default function Metronome() {
-  const [tempo, setTempo] = useState(120)
+  const [tempo, setTempo] = useState(80)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [noteResolution, setNoteResolution] = useState(0)
+  const [noteResolution, setNoteResolution] = useState(2)
+  const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
   const [isSound, setIsSound] = useState(true)
   const [playButtonText, setPlayButtonText] = useState('play')
   
@@ -243,22 +244,51 @@ export default function Metronome() {
         <div className="resolution-controls">
           <div className="resolution-buttons">
             <button 
-              className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
-              onClick={() => setNoteResolution(0)}
+              className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
+              onClick={() => setNoteResolution(2)}
             >
-              16th
+              4分音符
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 1 ? 'active' : ''}`}
               onClick={() => setNoteResolution(1)}
             >
-              8th
+              8分音符
             </button>
             <button 
-              className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
-              onClick={() => setNoteResolution(2)}
+              className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
+              onClick={() => setNoteResolution(0)}
             >
-              4th
+              16分音符
+            </button>
+          </div>
+        </div>
+        <div className="time-signature-controls">
+          <span>Time:</span>
+          <div className="time-signature-buttons">
+            <button 
+              className={`time-signature-btn ${timeSignature === 0 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(0)}
+            >
+              2/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 1 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(1)}
+            >
+              3/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 2 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(2)}
+            >
+              4/4
+            </button>
+            <button 
+              className={`time-signature-btn ${timeSignature === 3 ? 'active' : ''}`}
+              onClick={() => setTimeSignature(3)}
+            >
+              6/8
             </button>
           </div>
         </div>

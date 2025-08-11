@@ -1,5 +1,6 @@
 body {
-  background-color: lightgray;
+  background-color: #333631;
+  color: #ebf6f7;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -15,7 +16,7 @@ body {
 }
 
 .box-metronome {
-  background-color: white;
+  background-color: #333631;
   padding: 10px;
   flex: 1;
   min-height: 400px;
@@ -23,7 +24,7 @@ body {
 }
 
 .box-tuner {
-  background-color: white;
+  background-color: #333631;
   padding: 10px;
   flex: 1;
   min-height: 400px;
@@ -48,7 +49,8 @@ body {
   font-family: arial;
   font-size: 24px;
   font-weight: bold;
-  background-color: lightgrey;
+  background-color: #333631;
+  color: #ebf6f7;
   box-sizing: border-box;
 }
 
@@ -67,7 +69,7 @@ body {
 .metronome-start-btn {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #4CAF50;
+  background-color: #80989b;
   color: white;
   border: none;
   border-radius: 5px;
@@ -76,7 +78,7 @@ body {
 }
 
 .metronome-start-btn:hover {
-  background-color: #45a049;
+  background-color: #6d8285;
 }
 
 .metronome-start-btn.active {
@@ -111,7 +113,8 @@ body {
   width: 80px;
   height: 80px;
   border: 1px solid #ccc;
-  background: #f8f8f8;
+  background: #80989b;
+  color: white;
   font-size: 40px;
   font-weight: bold;
   cursor: pointer;
@@ -130,11 +133,11 @@ body {
 }
 
 .tempo-btn:hover {
-  background: #e8e8e8;
+  background: #6d8285;
 }
 
 .tempo-btn:active {
-  background: #d8d8d8;
+  background: #5a6f72;
 }
 
 .tempo-input {
@@ -163,12 +166,15 @@ body {
 .resolution-buttons {
   display: flex;
   gap: 0;
+  width: 100%;
 }
 
 .resolution-btn {
+  flex: 1;
   padding: 8px 16px;
   border: 1px solid #ccc;
-  background: #f8f8f8;
+  background: #80989b;
+  color: white;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -184,7 +190,7 @@ body {
 }
 
 .resolution-btn:hover {
-  background: #e8e8e8;
+  background: #6d8285;
 }
 
 .resolution-btn.active {
@@ -193,8 +199,50 @@ body {
   border-color: #007AFF;
 }
 
+.time-signature-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-signature-buttons {
+  display: flex;
+  gap: 0;
+  width: 100%;
+}
+
+.time-signature-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background: #80989b;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.time-signature-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.time-signature-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.time-signature-btn:hover {
+  background: #6d8285;
+}
+
+.time-signature-btn.active {
+  background: #007AFF;
+  color: white;
+  border-color: #007AFF;
+}
+
 .beatCanvas {
-  background-color: white;
+  background-color: #333631;
   position: absolute;
   top: 320px;
   left: 20px;
@@ -221,6 +269,10 @@ body {
   mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
   flex-direction: row;
+}
+
+.notes-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .notes-list {
@@ -257,6 +309,7 @@ body {
   font-size: 32px;
   text-align: center;
   margin: 0;
+  color: #ebf6f7;
 }
 
 .frequency span {
@@ -278,7 +331,7 @@ body {
 .meter-pointer {
   width: 2px;
   height: 100%;
-  background: #2c3e50;
+  background: #ebf6f7;
   transform: rotate(45deg);
   transform-origin: bottom;
   transition: transform 0.5s;
@@ -289,7 +342,7 @@ body {
 .meter-dot {
   width: 10px;
   height: 10px;
-  background: #2c3e50;
+  background: #ebf6f7;
   border-radius: 50%;
   position: absolute;
   bottom: -5px;
@@ -335,6 +388,7 @@ body {
   align-items: center;
   gap: 8px;
   margin: 0;
+  color: #ebf6f7;
 }
 
 .sound input[type="checkbox"] {
@@ -352,7 +406,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: lightgrey;
+  background-color: #333631;
+  color: #ebf6f7;
   padding: 10px;
   box-sizing: border-box;
   font-family: arial;
@@ -370,7 +425,7 @@ body {
 .tuner-start-btn {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #4CAF50;
+  background-color: #80989b;
   color: white;
   border: none;
   border-radius: 5px;
@@ -379,7 +434,7 @@ body {
 }
 
 .tuner-start-btn:hover {
-  background-color: #45a049;
+  background-color: #6d8285;
 }
 
 .tuner-start-btn.active {
@@ -395,6 +450,7 @@ body {
   align-items: center;
   gap: 5px;
   font-size: 18px;
+  color: #ebf6f7;
 }
 
 .a4-stepper {
@@ -406,7 +462,8 @@ body {
   width: 30px;
   height: 30px;
   border: 1px solid #ccc;
-  background: #f8f8f8;
+  background: #80989b;
+  color: white;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -425,11 +482,11 @@ body {
 }
 
 .a4-btn:hover {
-  background: #e8e8e8;
+  background: #6d8285;
 }
 
 .a4-btn:active {
-  background: #d8d8d8;
+  background: #5a6f72;
 }
 
 .a4-input {
