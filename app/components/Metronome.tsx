@@ -84,14 +84,30 @@ export default function Metronome() {
         }
 
         if (last16thNoteDrawnRef.current !== currentNote) {
-          const x = Math.floor(canvas.width / 18)
+          // Determine number of beats based on time signature
+          let beatsCount = 16 // default 4/4
+          if (timeSignature === 0) beatsCount = 8  // 2/4
+          if (timeSignature === 1) beatsCount = 12 // 3/4
+          if (timeSignature === 3) beatsCount = 12 // 6/8
+          const x = Math.floor(canvas.width / (beatsCount + 2))
           const radius = Math.min(x / 4, canvas.height / 4)
           canvasContext.clearRect(0, 0, canvas.width, canvas.height)
           
-          for (let i = 0; i < 16; i++) {
-            canvasContext.fillStyle = currentNote === i 
-              ? (currentNote % 4 === 0 ? 'crimson' : 'green') 
-              : 'black'
+          for (let i = 0; i < beatsCount; i++) {
+            let fillColor = '#ebf6f7'
+            if (currentNote === i) {
+              // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
+              if (timeSignature === 3 && noteResolution === 1 && (i === 0 || i === 6)) {
+                fillColor = 'crimson'
+              } else if (timeSignature === 3 && noteResolution === 1) {
+                fillColor = 'green' // Other 8th notes in 6/8
+              } else if (currentNote % 4 === 0) {
+                fillColor = 'crimson'
+              } else {
+                fillColor = 'green'
+              }
+            }
+            canvasContext.fillStyle = fillColor
             canvasContext.beginPath()
             canvasContext.arc(x * (i + 1) + x / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
             canvasContext.fill()
@@ -109,13 +125,19 @@ export default function Metronome() {
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
     }
-  }, [noteResolution])
+  }, [noteResolution, timeSignature])
 
   const nextNote = () => {
     const secondsPerBeat = 60.0 / tempo
-    nextNoteTimeRef.current += 0.25 * secondsPerBeat
+    // For 6/8 time, adjust timing to make 6 beats per second at tempo 60
+    const timeIncrement = timeSignature === 3 ? (1.0 / 6.0) * secondsPerBeat : 0.25 * secondsPerBeat
+    nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
-    if (current16thNoteRef.current === 16) {
+    let maxBeats = 16 // default 4/4
+    if (timeSignature === 0) maxBeats = 8  // 2/4
+    if (timeSignature === 1) maxBeats = 12 // 3/4
+    if (timeSignature === 3) maxBeats = 12 // 6/8
+    if (current16thNoteRef.current === maxBeats) {
       current16thNoteRef.current = 0
     }
   }
@@ -123,10 +145,24 @@ export default function Metronome() {
   const scheduleNote = (beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
-    // Skip notes based on resolution - use current noteResolution value
-    const currentResolution = noteResolution
-    if (currentResolution === 1 && (beatNumber % 2 !== 0)) return  // 8th notes: skip odd beats
-    if (currentResolution === 2 && (beatNumber % 4 !== 0)) return  // Quarter notes: skip non-quarter beats
+    // Skip notes based on time signature and resolution
+    if (timeSignature === 0) { // 2/4 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4) return // Quarter: 1st and 5th
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7
+      // 16th: all beats (no skip)
+    } else if (timeSignature === 1) { // 3/4 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
+      // 16th: all beats (no skip)
+    } else if (timeSignature === 3) { // 6/8 time
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
+      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
+      // 16th: all beats (no skip)
+    } else {
+      // Other time signatures (keep original logic)
+      if (noteResolution === 1 && (beatNumber % 2 !== 0)) return
+      if (noteResolution === 2 && (beatNumber % 4 !== 0)) return
+    }
 
     const audioContext = audioContextRef.current
     if (!audioContext || !isSound) return
@@ -137,7 +173,12 @@ export default function Metronome() {
     const filter = audioContext.createBiquadFilter()
     
     osc.type = 'square'
-    osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+    // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
+    if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
+      osc.frequency.value = 1200 // Higher pitch for emphasis
+    } else {
+      osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+    }
     
     filter.type = 'highpass'
     filter.frequency.value = 1000
