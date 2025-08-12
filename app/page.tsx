@@ -1,14 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
 import Metronome from './components/Metronome'
 import Tuner from './components/Tuner'
+import PWAInstaller from './components/PWAInstaller'
 
 export default function Home() {
   return (
-    <div className="container">
-      <Tuner />
-      <Metronome />
-    </div>
+    <>
+      <PWAInstaller />
+      <div className="container">
+        <Tuner />
+        <Metronome />
+      </div>
+      <footer className="footer">
+        <span>Rhythm&Tune</span>
+      </footer>
+    </>
   )
 }
