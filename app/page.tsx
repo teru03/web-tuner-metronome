@@ -7,8 +7,8 @@ import Tuner from './components/Tuner'
 export default function Home() {
   return (
     <div className="container">
-      <Metronome />
       <Tuner />
+      <Metronome />
     </div>
   )
 }
