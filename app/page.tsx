@@ -12,9 +12,6 @@ export default function Home() {
         <Tuner />
         <Metronome />
       </div>
-      <footer className="footer">
-        <span>Rhythm&Tune</span>
-      </footer>
     </>
   )
 }
