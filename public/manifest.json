@@ -3,6 +3,7 @@
   "short_name": "Rhythm&Tune",
   "description": "チューナー・メトロノームアプリ",
   "start_url": "/",
+  "scope": "/",  
   "display": "standalone",
   "background_color": "#333631",
   "theme_color": "#68be8d",

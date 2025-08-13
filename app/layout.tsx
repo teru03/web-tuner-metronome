@@ -26,6 +26,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Rhythm&Tune" />
+        <meta name="theme-color" content="#68be8d"></meta>
       </head>
       <body>
         {children}
