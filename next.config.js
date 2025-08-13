@@ -1,12 +1,9 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
-  basePath: process.env.NODE_ENV === 'production' ? '/web-tuner-metronome' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/web-tuner-metronome/' : '',
-}
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+})
 
-module.exports = nextConfig
+module.exports = withPWA({
+  reactStrictMode: true,
+})
