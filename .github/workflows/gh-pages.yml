@@ -10,6 +10,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build   # Next.js 14 は output:'export' で build すると out/ に書き出される
+      - run: touch out/.nojekyll   # ★ 重要
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
