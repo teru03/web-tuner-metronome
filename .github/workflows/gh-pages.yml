@@ -1,4 +1,8 @@
 # .github/workflows/gh-pages.yml（例）
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
