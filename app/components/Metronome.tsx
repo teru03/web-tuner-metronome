@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export default function Metronome() {
   const [tempo, setTempo] = useState(80)
@@ -8,34 +8,17 @@ export default function Metronome() {
   const [noteResolution, setNoteResolution] = useState(2)
   const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
   const [isSound, setIsSound] = useState(true)
-  const [playButtonText, setPlayButtonText] = useState('play')
+  const [currentBeat, setCurrentBeat] = useState(-1)
   
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const timerWorkerRef = useRef<Worker | null>(null)
   const nextNoteTimeRef = useRef(0)
   const current16thNoteRef = useRef(0)
   const notesInQueueRef = useRef<Array<{note: number, time: number}>>([])
   const last16thNoteDrawnRef = useRef(-1)
+  const isPlayingRef = useRef(false)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const canvasContext = canvas.getContext('2d')
-    if (!canvasContext) return
-
-    const resizeCanvas = () => {
-      const parent = canvas.parentElement
-      if (parent) {
-        canvas.width = parent.clientWidth
-        canvas.height = 50
-      }
-    }
-
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-
     // Web Worker setup
     const workerCode = `
       var timerID=null;
@@ -63,15 +46,16 @@ export default function Metronome() {
     timerWorkerRef.current = worker
 
     worker.onmessage = (e) => {
+      console.log('Worker message received:', e.data, 'isPlayingRef:', isPlayingRef.current)
       if (e.data === 'tick') {
+        console.log('Worker tick received, calling scheduler')
         scheduler()
       }
     }
 
     worker.postMessage({ interval: 25 })
 
-    const draw = () => {
-      let currentNote = last16thNoteDrawnRef.current
+    const updateBeat = () => {
       const audioContext = audioContextRef.current
       
       if (audioContext) {
@@ -79,70 +63,42 @@ export default function Metronome() {
         const notesInQueue = notesInQueueRef.current
 
         while (notesInQueue.length && notesInQueue[0].time < currentTime) {
-          currentNote = notesInQueue[0].note
+          const currentNote = notesInQueue[0].note
           notesInQueue.splice(0, 1)
-        }
-
-        if (last16thNoteDrawnRef.current !== currentNote) {
-          // Determine number of beats based on time signature
-          let beatsCount = 16 // default 4/4
-          if (timeSignature === 0) beatsCount = 8  // 2/4
-          if (timeSignature === 1) beatsCount = 12 // 3/4
-          if (timeSignature === 3) beatsCount = 12 // 6/8
-          const x = Math.floor(canvas.width / (beatsCount + 2))
-          const radius = Math.min(x / 4, canvas.height / 4)
-          canvasContext.clearRect(0, 0, canvas.width, canvas.height)
           
-          for (let i = 0; i < beatsCount; i++) {
-            let fillColor = '#ebf6f7'
-            if (currentNote === i) {
-              // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
-              if (timeSignature === 3 && noteResolution === 1 && (i === 0 || i === 6)) {
-                fillColor = 'crimson'
-              } else if (timeSignature === 3 && noteResolution === 1) {
-                fillColor = 'green' // Other 8th notes in 6/8
-              } else if (currentNote % 4 === 0) {
-                fillColor = 'crimson'
-              } else {
-                fillColor = 'green'
-              }
-            }
-            canvasContext.fillStyle = fillColor
-            canvasContext.beginPath()
-            canvasContext.arc(x * (i + 1) + x / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
-            canvasContext.fill()
+          if (last16thNoteDrawnRef.current !== currentNote) {
+            setCurrentBeat(currentNote)
+            last16thNoteDrawnRef.current = currentNote
           }
-          last16thNoteDrawnRef.current = currentNote
         }
       }
-      requestAnimationFrame(draw)
+      requestAnimationFrame(updateBeat)
     }
 
-    draw()
+    updateBeat()
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas)
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
     }
-  }, [noteResolution, timeSignature])
+  }, [noteResolution, timeSignature, tempo, isSound])
 
-  const nextNote = () => {
+  const nextNote = useCallback(() => {
     const secondsPerBeat = 60.0 / tempo
-    // For 6/8 time, adjust timing to make 6 beats per second at tempo 60
-    const timeIncrement = timeSignature === 3 ? (1.0 / 6.0) * secondsPerBeat : 0.25 * secondsPerBeat
+    // For 6/8 time, use 8th note timing (1/8 of a beat)
+    const timeIncrement = timeSignature === 3 ? (1.0 / 8.0) * secondsPerBeat : 0.25 * secondsPerBeat
     nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
     let maxBeats = 16 // default 4/4
     if (timeSignature === 0) maxBeats = 8  // 2/4
     if (timeSignature === 1) maxBeats = 12 // 3/4
-    if (timeSignature === 3) maxBeats = 12 // 6/8
+    if (timeSignature === 3) maxBeats = 12 // 6/8 (12 eighth notes)
     if (current16thNoteRef.current === maxBeats) {
       current16thNoteRef.current = 0
     }
-  }
+  }, [tempo, timeSignature])
 
-  const scheduleNote = (beatNumber: number, time: number) => {
+  const scheduleNote = useCallback((beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
     // Skip notes based on time signature and resolution
@@ -155,7 +111,7 @@ export default function Metronome() {
       if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
       // 16th: all beats (no skip)
     } else if (timeSignature === 3) { // 6/8 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
+      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 6) return // Dotted quarter: 1st and 7th (every 6 beats)
       if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
       // 16th: all beats (no skip)
     } else {
@@ -165,77 +121,97 @@ export default function Metronome() {
     }
 
     const audioContext = audioContextRef.current
-    if (!audioContext || !isSound) return
-
-    // Create click sound using noise and filtering
-    const osc = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    const filter = audioContext.createBiquadFilter()
-    
-    osc.type = 'square'
-    // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
-    if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
-      osc.frequency.value = 1200 // Higher pitch for emphasis
-    } else {
-      osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
-    }
-    
-    filter.type = 'highpass'
-    filter.frequency.value = 1000
-    
-    osc.connect(filter)
-    filter.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    
-    // Sharp attack and quick decay for click sound
-    gainNode.gain.setValueAtTime(0, time)
-    gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
-    
-    osc.start(time)
-    osc.stop(time + 0.02)
-  }
-
-  const scheduler = () => {
-    const audioContext = audioContextRef.current
     if (!audioContext) return
 
+    if (isSound) {
+      // Create click sound using noise and filtering
+      const osc = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      const filter = audioContext.createBiquadFilter()
+      
+      osc.type = 'square'
+      // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
+      if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
+        osc.frequency.value = 1200 // Higher pitch for emphasis
+      } else {
+        osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+      }
+      
+      filter.type = 'highpass'
+      filter.frequency.value = 1000
+      
+      osc.connect(filter)
+      filter.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      // Sharp attack and quick decay for click sound
+      gainNode.gain.setValueAtTime(0, time)
+      gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
+      
+      osc.start(time)
+      osc.stop(time + 0.02)
+    }
+  }, [timeSignature, noteResolution, isSound, tempo])
+
+  const scheduler = useCallback(() => {
+    const audioContext = audioContextRef.current
+    if (!audioContext || !isPlayingRef.current) {
+      console.log('Scheduler exit - audioContext:', !!audioContext, 'isPlayingRef:', isPlayingRef.current)
+      return
+    }
+
+    console.log('Scheduler called, currentTime:', audioContext.currentTime, 'nextNoteTime:', nextNoteTimeRef.current)
     while (nextNoteTimeRef.current < audioContext.currentTime + 0.1) {
+      console.log('Scheduling note:', current16thNoteRef.current, 'at time:', nextNoteTimeRef.current)
       scheduleNote(current16thNoteRef.current, nextNoteTimeRef.current)
       nextNote()
     }
-  }
+  }, [scheduleNote, nextNote])
 
   const handlePlay = async () => {
+    console.log('handlePlay called, isPlaying:', isPlaying)
+    
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
+      console.log('AudioContext created')
     }
 
     const audioContext = audioContextRef.current
+    console.log('AudioContext state:', audioContext.state)
     
     if (audioContext.state === 'suspended') {
       await audioContext.resume()
+      console.log('AudioContext resumed')
     }
 
     // Unlock audio context with a silent buffer
-    if (audioContext.state === 'running' && isSound) {
+    if (audioContext.state === 'running') {
       const buffer = audioContext.createBuffer(1, 1, 22050)
       const source = audioContext.createBufferSource()
       source.buffer = buffer
       source.connect(audioContext.destination)
       source.start(0)
+      console.log('Silent buffer played')
     }
 
     if (!isPlaying) {
+      console.log('Starting metronome')
       current16thNoteRef.current = 0
       nextNoteTimeRef.current = audioContext.currentTime
-      timerWorkerRef.current?.postMessage('start')
-      setPlayButtonText('stop')
+      console.log('nextNoteTime set to:', nextNoteTimeRef.current)
+      isPlayingRef.current = true
       setIsPlaying(true)
+      timerWorkerRef.current?.postMessage('start')
+      console.log('Worker start message sent')
     } else {
-      timerWorkerRef.current?.postMessage('stop')
-      setPlayButtonText('play')
+      console.log('Stopping metronome')
+      isPlayingRef.current = false
       setIsPlaying(false)
+      timerWorkerRef.current?.postMessage('stop')
+      notesInQueueRef.current = []
+      setCurrentBeat(-1)
+      console.log('Worker stop message sent')
     }
   }
 
@@ -288,7 +264,7 @@ export default function Metronome() {
               className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
               onClick={() => setNoteResolution(2)}
             >
-              4分音符
+              {timeSignature === 3 ? '付点4分音符' : '4分音符'}
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 1 ? 'active' : ''}`}
@@ -335,7 +311,49 @@ export default function Metronome() {
 
       </div>
       <div className="beatCanvas">
-        <canvas ref={canvasRef} />
+        <svg width="100%" height="50" viewBox="0 0 400 50">
+          {(() => {
+            let beatsCount = 4 // default 4/4
+            if (timeSignature === 0) beatsCount = 2  // 2/4
+            if (timeSignature === 1) beatsCount = 3  // 3/4
+            if (timeSignature === 3) beatsCount = 2  // 6/8
+            
+            const circles = []
+            const spacing = 400 / (beatsCount + 2)
+            
+            for (let i = 0; i < beatsCount; i++) {
+              let fillColor = '#ebf6f7'
+              
+              // Map internal beat counter to visual beat
+              let isCurrentBeat = false
+              if (timeSignature === 0) { // 2/4
+                isCurrentBeat = currentBeat === i * 4
+              } else if (timeSignature === 1) { // 3/4
+                isCurrentBeat = currentBeat === i * 4
+              } else if (timeSignature === 2) { // 4/4
+                isCurrentBeat = currentBeat === i * 4
+              } else if (timeSignature === 3) { // 6/8
+                isCurrentBeat = currentBeat === i * 6
+              }
+              
+              if (isCurrentBeat) {
+                fillColor = i === 0 ? 'crimson' : 'green'
+              }
+              
+              circles.push(
+                <circle
+                  key={i}
+                  cx={spacing * (i + 1) + spacing / 2}
+                  cy={25}
+                  r={12}
+                  fill={fillColor}
+                />
+              )
+            }
+            
+            return circles
+          })()} 
+        </svg>
       </div>
     </div>
   )
