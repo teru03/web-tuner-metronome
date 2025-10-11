@@ -56,20 +56,25 @@ const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignatur
 BeatVisualizer.displayName = 'BeatVisualizer';
 
 export default function Metronome() {
-  const [tempo, setTempo] = useState(80)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [noteResolution, setNoteResolution] = useState(2)
-  const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
-  const [isSound, setIsSound] = useState(true)
-  const [currentBeat, setCurrentBeat] = useState(-1)
+  const [tempo, setTempo] = useState(80);
+  const [inputValue, setInputValue] = useState(String(tempo));
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [noteResolution, setNoteResolution] = useState(2);
+  const [timeSignature, setTimeSignature] = useState(2); // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
+  const [isSound, setIsSound] = useState(true);
+  const [currentBeat, setCurrentBeat] = useState(-1);
   
-  const audioContextRef = useRef<AudioContext | null>(null)
-  const timerWorkerRef = useRef<Worker | null>(null)
-  const nextNoteTimeRef = useRef(0)
-  const current16thNoteRef = useRef(0)
-  const notesInQueueRef = useRef<Array<{note: number, time: number}>>([])
-  const last16thNoteDrawnRef = useRef(-1)
-  const isPlayingRef = useRef(false)
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const timerWorkerRef = useRef<Worker | null>(null);
+  const nextNoteTimeRef = useRef(0);
+  const current16thNoteRef = useRef(0);
+  const notesInQueueRef = useRef<Array<{note: number, time: number}>>([]);
+  const last16thNoteDrawnRef = useRef(-1);
+  const isPlayingRef = useRef(false);
+
+  useEffect(() => {
+    setInputValue(String(tempo));
+  }, [tempo]);
 
   useEffect(() => {
     // Web Worker setup
@@ -244,6 +249,28 @@ export default function Metronome() {
     }
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    let newTempo = Number(inputValue);
+    if (isNaN(newTempo) || newTempo < 30) {
+      newTempo = 30;
+    } else if (newTempo > 160) {
+      newTempo = 160;
+    }
+    setTempo(newTempo);
+    setInputValue(String(newTempo));
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+      e.currentTarget.blur();
+    }
+  };
+
   return (
     <div className="box-metronome">
       <div className="metronome-controls">
@@ -273,8 +300,10 @@ export default function Metronome() {
             </button>
             <input
               type="number"
-              value={tempo}
-              onChange={(e) => setTempo(Math.min(160, Math.max(30, Number(e.target.value) || 30)))}
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={handleInputKeyDown}
               className="tempo-input"
               min="30"
               max="160"
