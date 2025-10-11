@@ -73,10 +73,6 @@ export default function Metronome() {
   const isPlayingRef = useRef(false);
 
   useEffect(() => {
-    setInputValue(String(tempo));
-  }, [tempo]);
-
-  useEffect(() => {
     // Web Worker setup
     const workerCode = `
       var timerID=null;
@@ -142,7 +138,8 @@ export default function Metronome() {
   }, []) // Removed dependencies to prevent re-creation
 
   const nextNote = useCallback(() => {
-    const secondsPerBeat = 60.0 / tempo
+    const currentTempo = Math.max(30, Math.min(160, tempo));
+    const secondsPerBeat = 60.0 / currentTempo;
     const timeIncrement = timeSignature === 3 ? (1.0 / 8.0) * secondsPerBeat : 0.25 * secondsPerBeat
     nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
@@ -250,26 +247,26 @@ export default function Metronome() {
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    const val = e.target.value;
+    setInputValue(val);
+
+    const num = Number(val);
+    if (!isNaN(num) && val !== '') {
+      setTempo(num);
+    }
   };
 
   const handleInputBlur = () => {
-    let newTempo = Number(inputValue);
-    if (isNaN(newTempo) || newTempo < 30) {
-      newTempo = 30;
-    } else if (newTempo > 160) {
-      newTempo = 160;
-    }
-    setTempo(newTempo);
-    setInputValue(String(newTempo));
+    const clampedTempo = Math.max(30, Math.min(160, tempo));
+    setTempo(clampedTempo);
+    setInputValue(String(clampedTempo));
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleInputBlur();
-      e.currentTarget.blur();
-    }
-  };
+  const handlePlusMinusClick = (newTempo: number) => {
+    const clamped = Math.max(30, Math.min(160, newTempo));
+    setTempo(clamped);
+    setInputValue(String(clamped));
+  }
 
   return (
     <div className="box-metronome">
@@ -294,7 +291,7 @@ export default function Metronome() {
           <div className="tempo-stepper">
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.max(30, tempo - 1))}
+              onClick={() => handlePlusMinusClick(tempo - 1)}
             >
               −
             </button>
@@ -303,14 +300,13 @@ export default function Metronome() {
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
-              onKeyDown={handleInputKeyDown}
               className="tempo-input"
               min="30"
               max="160"
             />
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.min(160, tempo + 1))}
+              onClick={() => handlePlusMinusClick(tempo + 1)}
             >
               +
             </button>
