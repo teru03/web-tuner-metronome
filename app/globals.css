@@ -534,3 +534,106 @@ body {
     width: 100%;
   }
 }
+
+@media (orientation: landscape) and (max-height: 450px) {
+  .container {
+    padding: 2px;
+    gap: 5px;
+  }
+
+  .box-metronome, .box-tuner {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 垂直方向の中央揃え */
+  }
+
+  /* --- Metronome Adjustments --- */
+
+  .metronome-controls {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    top: auto; left: auto; right: auto;
+  }
+
+  .metronome-controls * {
+    margin: 2px;
+  }
+
+  .metronome-play {
+    padding: 2px;
+  }
+
+  .tempo-stepper {
+    margin-top: 5px;
+  }
+
+  .tempo-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+  }
+
+  .tempo-input {
+    height: 45px;
+    font-size: 22px;
+  }
+
+  .resolution-btn, .time-signature-btn {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+
+  .beatCanvas {
+    position: relative;
+    height: 30px;
+    margin-top: 5px;
+    width: 100%;
+    top: auto; left: auto; right: auto;
+  }
+
+  /* --- Tuner Adjustments --- */
+
+  .tuner-controls {
+    position: relative;
+    height: auto;
+    padding: 0;
+    width: 100%;
+    top: auto; left: auto; right: auto;
+  }
+
+  .meter {
+    position: relative;
+    transform: none;
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    height: 50px; /* 高さを固定 */
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .notes-wrapper {
+    position: relative;
+    top: auto; left: auto; right: auto;
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  .notes-list {
+    font-size: 40px;
+    padding: 5px 0;
+  }
+
+  .frequency {
+    position: relative;
+    top: auto; left: auto; right: auto;
+    font-size: 20px;
+    margin-top: 5px;
+  }
+}
