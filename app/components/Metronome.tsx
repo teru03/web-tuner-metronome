@@ -4,36 +4,25 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 interface BeatVisualizerProps {
   timeSignature: number;
   currentBeat: number;
+  rhythmPattern: boolean[];
 }
 
-const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignature, currentBeat }) => {
+const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignature, currentBeat, rhythmPattern }) => {
   return (
     <svg width="100%" height="50" viewBox="0 0 400 50">
       {(() => {
-        let beatsCount = 4; // default 4/4
-        if (timeSignature === 0) beatsCount = 2;  // 2/4
-        if (timeSignature === 1) beatsCount = 3;  // 3/4
-        if (timeSignature === 3) beatsCount = 2;  // 6/8
-        
+        let maxBeats = 16; // default 4/4
+        if (timeSignature === 0) maxBeats = 8;  // 2/4
+        if (timeSignature === 1) maxBeats = 12; // 3/4
+        if (timeSignature === 3) maxBeats = 12; // 6/8
+
         const circles = [];
-        const spacing = 400 / (beatsCount + 2);
+        const spacing = 400 / (maxBeats + 2);
         
-        for (let i = 0; i < beatsCount; i++) {
-          let fillColor = '#ebf6f7';
-          
-          let isCurrentBeat = false;
-          if (timeSignature === 0) { // 2/4
-            isCurrentBeat = currentBeat === i * 4;
-          } else if (timeSignature === 1) { // 3/4
-            isCurrentBeat = currentBeat === i * 4;
-          } else if (timeSignature === 2) { // 4/4
-            isCurrentBeat = currentBeat === i * 4;
-          } else if (timeSignature === 3) { // 6/8
-            isCurrentBeat = currentBeat === i * 6;
-          }
-          
-          if (isCurrentBeat) {
-            fillColor = i === 0 ? 'crimson' : 'green';
+        for (let i = 0; i < maxBeats; i++) {
+          let fillColor = rhythmPattern[i] ? 'lightblue' : '#ebf6f7';
+          if (currentBeat === i) {
+            fillColor = rhythmPattern[i] ? 'dodgerblue' : 'green';
           }
           
           circles.push(
@@ -41,7 +30,7 @@ const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignatur
               key={i}
               cx={spacing * (i + 1) + spacing / 2}
               cy={25}
-              r={12}
+              r={8}
               fill={fillColor}
             />
           );
@@ -72,6 +61,14 @@ export default function Metronome() {
   const last16thNoteDrawnRef = useRef(-1)
   const isPlayingRef = useRef(false)
   const [rhythmPattern, setRhythmPattern] = useState<boolean[]>(new Array(16).fill(false))
+
+  useEffect(() => {
+    let maxBeats = 16 // default 4/4
+    if (timeSignature === 0) maxBeats = 8  // 2/4
+    if (timeSignature === 1) maxBeats = 12 // 3/4
+    if (timeSignature === 3) maxBeats = 12 // 6/8
+    setRhythmPattern(new Array(maxBeats).fill(false))
+  }, [timeSignature])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -170,7 +167,7 @@ export default function Metronome() {
     if (timeSignature === 0) maxBeats = 8  // 2/4
     if (timeSignature === 1) maxBeats = 12 // 3/4
     if (timeSignature === 3) maxBeats = 12 // 6/8 (12 eighth notes)
-    if (current16thNoteRef.current === maxBeats) {
+    if (current16thNoteRef.current >= maxBeats) {
       current16thNoteRef.current = 0
     }
   }, [tempo, timeSignature])
@@ -178,18 +175,26 @@ export default function Metronome() {
   const scheduleNote = useCallback((beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
-    if (timeSignature === 0) { // 2/4 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4) return
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return
-    } else if (timeSignature === 1) { // 3/4 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return
-    } else if (timeSignature === 3) { // 6/8 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 6) return
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return
+    const userHasRhythm = rhythmPattern.some(v => v);
+
+    if (userHasRhythm) {
+      if (!rhythmPattern[beatNumber]) {
+        return;
+      }
     } else {
-      if (noteResolution === 1 && (beatNumber % 2 !== 0)) return
-      if (noteResolution === 2 && (beatNumber % 4 !== 0)) return
+      if (timeSignature === 0) { // 2/4 time
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      } else if (timeSignature === 1) { // 3/4 time
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      } else if (timeSignature === 3) { // 6/8 time
+        if (noteResolution === 2 && beatNumber % 6 !== 0) return
+        if (noteResolution === 1 && beatNumber % 3 !== 0) return
+      } else { // 4/4
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      }
     }
 
     const audioContext = audioContextRef.current
@@ -198,30 +203,25 @@ export default function Metronome() {
     if (isSound) {
       const osc = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
-      const filter = audioContext.createBiquadFilter()
       
       osc.type = 'square'
-      if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
-        osc.frequency.value = 1200
-      } else {
-        osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+      if (timeSignature === 3) { // 6/8 time
+          osc.frequency.value = (beatNumber === 0 || beatNumber === 6) ? 1200 : 800
+      } else { // Other time signatures
+          osc.frequency.value = beatNumber % (16 / (timeSignature === 0 ? 8 : timeSignature === 1 ? 12 : 16)) === 0 ? 1000 : 800
       }
-      
-      filter.type = 'highpass'
-      filter.frequency.value = 1000
-      
-      osc.connect(filter)
-      filter.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-      
+
       gainNode.gain.setValueAtTime(0, time)
       gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
       gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
       
+      osc.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
       osc.start(time)
       osc.stop(time + 0.02)
     }
-  }, [timeSignature, noteResolution, isSound])
+  }, [timeSignature, noteResolution, isSound, tempo, rhythmPattern])
 
   const scheduler = useCallback(() => {
     const audioContext = audioContextRef.current
@@ -244,14 +244,6 @@ export default function Metronome() {
     
     if (audioContext.state === 'suspended') {
       await audioContext.resume()
-    }
-
-    if (audioContext.state === 'running') {
-      const buffer = audioContext.createBuffer(1, 1, 22050)
-      const source = audioContext.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContext.destination)
-      source.start(0)
     }
 
     if (!isPlaying) {
@@ -289,6 +281,14 @@ export default function Metronome() {
     const clamped = Math.max(30, Math.min(160, newTempo));
     setTempo(clamped);
     setInputValue(String(clamped));
+  }
+
+  const clearRhythm = () => {
+    let maxBeats = 16 // default 4/4
+    if (timeSignature === 0) maxBeats = 8  // 2/4
+    if (timeSignature === 1) maxBeats = 12 // 3/4
+    if (timeSignature === 3) maxBeats = 12 // 6/8
+    setRhythmPattern(new Array(maxBeats).fill(false))
   }
 
   return (
@@ -341,20 +341,21 @@ export default function Metronome() {
               className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
               onClick={() => setNoteResolution(2)}
             >
-              {timeSignature === 3 ? '付点4分音符' : '4分音符'}
+              {timeSignature === 3 ? 'Dotted Quarter' : 'Quarter'}
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 1 ? 'active' : ''}`}
               onClick={() => setNoteResolution(1)}
             >
-              8分音符
+              8th
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
               onClick={() => setNoteResolution(0)}
             >
-              16分音符
+              16th
             </button>
+            <button onClick={clearRhythm}>Clear Rhythm</button>
           </div>
         </div>
         <div className="time-signature-controls">
@@ -388,7 +389,7 @@ export default function Metronome() {
 
       </div>
       <div className="beatCanvas">
-        <BeatVisualizer timeSignature={timeSignature} currentBeat={currentBeat} />
+        <BeatVisualizer timeSignature={timeSignature} currentBeat={currentBeat} rhythmPattern={rhythmPattern} />
       </div>
     </div>
   )
