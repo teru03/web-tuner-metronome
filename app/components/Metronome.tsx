@@ -17,6 +17,29 @@ export default function Metronome() {
   const notesInQueueRef = useRef<Array<{note: number, time: number}>>([])
   const last16thNoteDrawnRef = useRef(-1)
   const isPlayingRef = useRef(false)
+  const [rhythmPattern, setRhythmPattern] = useState<boolean[]>(new Array(16).fill(false))
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === ' ') {
+        event.preventDefault()
+        if (!isPlaying) return
+
+        setRhythmPattern(prevPattern => {
+          const newPattern = [...prevPattern]
+          const beatToToggle = current16thNoteRef.current
+          newPattern[beatToToggle] = !newPattern[beatToToggle]
+          return newPattern
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isPlaying])
 
   useEffect(() => {
     // Web Worker setup
