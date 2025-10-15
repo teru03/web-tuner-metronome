@@ -1,14 +1,57 @@
-'use client'
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+// Beat visualizer component to prevent re-rendering of the whole metronome
+interface BeatVisualizerProps {
+  timeSignature: number;
+  currentBeat: number;
+  rhythmPattern: boolean[];
+}
+
+const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignature, currentBeat, rhythmPattern }) => {
+  return (
+    <svg width="100%" height="50" viewBox="0 0 400 50">
+      {(() => {
+        let maxBeats = 16; // default 4/4
+        if (timeSignature === 0) maxBeats = 8;  // 2/4
+        if (timeSignature === 1) maxBeats = 12; // 3/4
+        if (timeSignature === 3) maxBeats = 12; // 6/8
+
+        const circles = [];
+        const spacing = 400 / (maxBeats + 2);
+        
+        for (let i = 0; i < maxBeats; i++) {
+          let fillColor = rhythmPattern[i] ? 'lightblue' : '#ebf6f7';
+          if (currentBeat === i) {
+            fillColor = rhythmPattern[i] ? 'dodgerblue' : 'green';
+          }
+          
+          circles.push(
+            <circle
+              key={i}
+              cx={spacing * (i + 1) + spacing / 2}
+              cy={25}
+              r={8}
+              fill={fillColor}
+            />
+          );
+        }
+        
+        return circles;
+      })()} 
+    </svg>
+  );
+});
+
+BeatVisualizer.displayName = 'BeatVisualizer';
 
 export default function Metronome() {
-  const [tempo, setTempo] = useState(80)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [noteResolution, setNoteResolution] = useState(2)
-  const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
-  const [isSound, setIsSound] = useState(true)
-  const [currentBeat, setCurrentBeat] = useState(-1)
+  const [tempo, setTempo] = useState(80);
+  const [inputValue, setInputValue] = useState(String(tempo));
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [noteResolution, setNoteResolution] = useState(2);
+  const [timeSignature, setTimeSignature] = useState(2); // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
+  const [isSound, setIsSound] = useState(true);
+  const [currentBeat, setCurrentBeat] = useState(-1);
   
   const audioContextRef = useRef<AudioContext | null>(null)
   const timerWorkerRef = useRef<Worker | null>(null)
@@ -84,6 +127,7 @@ export default function Metronome() {
 
     worker.postMessage({ interval: 25 })
 
+    let animationFrameId: number;
     const updateBeat = () => {
       const audioContext = audioContextRef.current
       
@@ -101,7 +145,7 @@ export default function Metronome() {
           }
         }
       }
-      requestAnimationFrame(updateBeat)
+      animationFrameId = requestAnimationFrame(updateBeat)
     }
 
     updateBeat()
@@ -109,11 +153,13 @@ export default function Metronome() {
     return () => {
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
+      cancelAnimationFrame(animationFrameId);
     }
-  }, [])
+  }, []) // Removed dependencies to prevent re-creation
 
   const nextNote = useCallback(() => {
-    const secondsPerBeat = 60.0 / tempo
+    const currentTempo = Math.max(30, Math.min(160, tempo));
+    const secondsPerBeat = 60.0 / currentTempo;
     const timeIncrement = timeSignature === 3 ? (1.0 / 8.0) * secondsPerBeat : 0.25 * secondsPerBeat
     nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
@@ -215,6 +261,28 @@ export default function Metronome() {
     }
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    const num = Number(val);
+    if (!isNaN(num) && val !== '') {
+      setTempo(num);
+    }
+  };
+
+  const handleInputBlur = () => {
+    const clampedTempo = Math.max(30, Math.min(160, tempo));
+    setTempo(clampedTempo);
+    setInputValue(String(clampedTempo));
+  };
+
+  const handlePlusMinusClick = (newTempo: number) => {
+    const clamped = Math.max(30, Math.min(160, newTempo));
+    setTempo(clamped);
+    setInputValue(String(clamped));
+  }
+
   const clearRhythm = () => {
     let maxBeats = 16 // default 4/4
     if (timeSignature === 0) maxBeats = 8  // 2/4
@@ -246,21 +314,22 @@ export default function Metronome() {
           <div className="tempo-stepper">
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.max(30, tempo - 1))}
+              onClick={() => handlePlusMinusClick(tempo - 1)}
             >
               −
             </button>
             <input
               type="number"
-              value={tempo}
-              onChange={(e) => setTempo(Math.min(160, Math.max(30, Number(e.target.value) || 30)))}
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
               className="tempo-input"
               min="30"
               max="160"
             />
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.min(160, tempo + 1))}
+              onClick={() => handlePlusMinusClick(tempo + 1)}
             >
               +
             </button>
@@ -320,36 +389,7 @@ export default function Metronome() {
 
       </div>
       <div className="beatCanvas">
-        <svg width="100%" height="50" viewBox="0 0 400 50">
-          {(() => {
-            let maxBeats = 16 // default 4/4
-            if (timeSignature === 0) maxBeats = 8  // 2/4
-            if (timeSignature === 1) maxBeats = 12 // 3/4
-            if (timeSignature === 3) maxBeats = 12 // 6/8
-
-            const circles = []
-            const spacing = 400 / (maxBeats + 2)
-            
-            for (let i = 0; i < maxBeats; i++) {
-              let fillColor = rhythmPattern[i] ? 'lightblue' : '#ebf6f7'
-              if (currentBeat === i) {
-                fillColor = rhythmPattern[i] ? 'dodgerblue' : 'green'
-              }
-              
-              circles.push(
-                <circle
-                  key={i}
-                  cx={spacing * (i + 1) + spacing / 2}
-                  cy={25}
-                  r={8}
-                  fill={fillColor}
-                />
-              )
-            }
-            
-            return circles
-          })()} 
-        </svg>
+        <BeatVisualizer timeSignature={timeSignature} currentBeat={currentBeat} rhythmPattern={rhythmPattern} />
       </div>
     </div>
   )
