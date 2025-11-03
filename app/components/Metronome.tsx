@@ -9,6 +9,8 @@ export default function Metronome() {
   const [timeSignature, setTimeSignature] = useState(2) // 0: 2/4, 1: 3/4, 2: 4/4, 3: 6/8
   const [isSound, setIsSound] = useState(true)
   const [currentBeat, setCurrentBeat] = useState(-1)
+  const [isCustomKeyboardOpen, setIsCustomKeyboardOpen] = useState(false)
+  const [tempoInput, setTempoInput] = useState(String(tempo))
   
   const audioContextRef = useRef<AudioContext | null>(null)
   const timerWorkerRef = useRef<Worker | null>(null)
@@ -17,6 +19,10 @@ export default function Metronome() {
   const notesInQueueRef = useRef<Array<{note: number, time: number}>>([])
   const last16thNoteDrawnRef = useRef(-1)
   const isPlayingRef = useRef(false)
+
+  useEffect(() => {
+    setTempoInput(String(tempo))
+  }, [tempo])
 
   useEffect(() => {
     // Web Worker setup
@@ -215,6 +221,37 @@ export default function Metronome() {
     }
   }
 
+  const handleKeyPress = (key: string) => {
+    if (key === 'clear') {
+      setTempoInput('0');
+    } else if (key === 'backspace') {
+      if (tempoInput.length <= 1) {
+        setTempoInput('0');
+      } else {
+        setTempoInput(tempoInput.slice(0, -1));
+      }
+    } else if (tempoInput.length < 3) {
+      if (tempoInput === '0') {
+        setTempoInput(key);
+      } else {
+        setTempoInput(tempoInput + key);
+      }
+    }
+  };
+
+  const handleDone = () => {
+    const newTempo = parseInt(tempoInput, 10)
+    if (!isNaN(newTempo)) {
+      setTempo(Math.min(160, Math.max(30, newTempo)))
+    }
+    setIsCustomKeyboardOpen(false)
+  }
+
+  const handleCancel = () => {
+    setTempoInput(String(tempo))
+    setIsCustomKeyboardOpen(false)
+  }
+
   return (
     <div className="box-metronome">
       <div className="metronome-controls">
@@ -243,12 +280,11 @@ export default function Metronome() {
               −
             </button>
             <input
-              type="number"
+              type="text"
+              readOnly
               value={tempo}
-              onChange={(e) => setTempo(Math.min(160, Math.max(30, Number(e.target.value) || 30)))}
+              onClick={() => setIsCustomKeyboardOpen(true)}
               className="tempo-input"
-              min="30"
-              max="160"
             />
             <button 
               className="tempo-btn" 
@@ -355,6 +391,37 @@ export default function Metronome() {
           })()} 
         </svg>
       </div>
+
+      {isCustomKeyboardOpen && (
+        <div className="custom-keyboard-overlay" onClick={handleCancel}>
+          <div className="custom-keyboard" onClick={(e) => e.stopPropagation()}>
+            <div className="tempo-display">{tempoInput || '&nbsp;'}</div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('1')}>1</button>
+              <button onClick={() => handleKeyPress('2')}>2</button>
+              <button onClick={() => handleKeyPress('3')}>3</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('4')}>4</button>
+              <button onClick={() => handleKeyPress('5')}>5</button>
+              <button onClick={() => handleKeyPress('6')}>6</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('7')}>7</button>
+              <button onClick={() => handleKeyPress('8')}>8</button>
+              <button onClick={() => handleKeyPress('9')}>9</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('clear')}>C</button>
+              <button onClick={() => handleKeyPress('0')}>0</button>
+              <button onClick={() => handleKeyPress('backspace')}>&lt;</button>
+            </div>
+            <button className="done-btn" onClick={handleDone} disabled={tempoInput === '0'}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

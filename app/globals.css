@@ -534,3 +534,76 @@ body {
     width: 100%;
   }
 }
+
+/* Custom Keyboard Styles */
+.custom-keyboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.custom-keyboard {
+  background-color: #444;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+}
+
+.tempo-display {
+  background-color: #555;
+  color: white;
+  font-size: 24px;
+  text-align: right;
+  padding: 10px;
+  border-radius: 5px;
+  min-height: 30px;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 10px;
+}
+
+.keyboard-row button {
+  flex: 1;
+  padding: 15px;
+  font-size: 18px;
+  background-color: #666;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.keyboard-row button:hover {
+  background-color: #777;
+}
+
+.done-btn {
+  padding: 15px;
+  font-size: 18px;
+  background-color: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.done-btn:hover {
+  background-color: #0056b3;
+}
+
+.done-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

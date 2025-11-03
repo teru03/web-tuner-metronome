@@ -23,6 +23,8 @@ export default function Tuner() {
     value: 69,
     cents: 0
   })
+  const [isCustomKeyboardOpen, setIsCustomKeyboardOpen] = useState(false)
+  const [a4Input, setA4Input] = useState(String(a4))
 
   const tunerRef = useRef<any>(null)
   const meterPointerRef = useRef<HTMLDivElement>(null)
@@ -35,7 +37,9 @@ export default function Tuner() {
   useEffect(() => {
     const savedA4 = localStorage.getItem('a4')
     if (savedA4) {
-      setA4(parseInt(savedA4))
+      const newA4 = parseInt(savedA4)
+      setA4(newA4)
+      setA4Input(String(newA4))
     }
   }, [])
 
@@ -171,20 +175,6 @@ export default function Tuner() {
     }
   }
 
-  const handleA4Click = async () => {
-    const result = await Swal.fire({
-      input: 'number',
-      inputValue: a4,
-      title: 'A4周波数を設定'
-    })
-
-    if (result.value && parseInt(result.value) !== a4) {
-      const newA4 = parseInt(result.value)
-      setA4(newA4)
-      localStorage.setItem('a4', newA4.toString())
-    }
-  }
-
   const handleToggleTuner = () => {
     if (isTunerActive) {
       // Stop tuner
@@ -224,6 +214,39 @@ export default function Tuner() {
     }
   }, [])
 
+  const handleKeyPress = (key: string) => {
+    if (key === 'clear') {
+      setA4Input('0');
+    } else if (key === 'backspace') {
+      if (a4Input.length <= 1) {
+        setA4Input('0');
+      } else {
+        setA4Input(a4Input.slice(0, -1));
+      }
+    } else if (a4Input.length < 3) {
+      if (a4Input === '0') {
+        setA4Input(key);
+      } else {
+        setA4Input(a4Input + key);
+      }
+    }
+  };
+
+  const handleDone = () => {
+    const newA4 = parseInt(a4Input, 10)
+    if (!isNaN(newA4)) {
+      const validatedA4 = Math.min(480, Math.max(400, newA4))
+      setA4(validatedA4)
+      localStorage.setItem('a4', validatedA4.toString())
+    }
+    setIsCustomKeyboardOpen(false)
+  }
+
+  const handleCancel = () => {
+    setA4Input(String(a4))
+    setIsCustomKeyboardOpen(false)
+  }
+
   return (
     <>
       <Script 
@@ -244,25 +267,28 @@ export default function Tuner() {
               <div className="a4-stepper">
                 <button 
                   className="a4-btn" 
-                  onClick={() => setA4(Math.max(400, a4 - 1))}
+                  onClick={() => {
+                    const newA4 = Math.max(400, a4 - 1)
+                    setA4(newA4)
+                    localStorage.setItem('a4', newA4.toString())
+                  }}
                 >
                   −
                 </button>
                 <input
-                  type="number"
+                  type="text"
+                  readOnly
                   value={a4}
-                  onChange={(e) => {
-                    const newA4 = Math.min(480, Math.max(400, Number(e.target.value) || 442))
-                    setA4(newA4)
-                    localStorage.setItem('a4', newA4.toString())
-                  }}
+                  onClick={() => setIsCustomKeyboardOpen(true)}
                   className="a4-input"
-                  min="400"
-                  max="480"
                 />
                 <button 
                   className="a4-btn" 
-                  onClick={() => setA4(Math.min(480, a4 + 1))}
+                  onClick={() => {
+                    const newA4 = Math.min(480, a4 + 1)
+                    setA4(newA4)
+                    localStorage.setItem('a4', newA4.toString())
+                  }}
                 >
                   +
                 </button>
@@ -282,6 +308,36 @@ export default function Tuner() {
         <span>Hz</span>
       </div>
 
+      {isCustomKeyboardOpen && (
+        <div className="custom-keyboard-overlay" onClick={handleCancel}>
+          <div className="custom-keyboard" onClick={(e) => e.stopPropagation()}>
+            <div className="tempo-display">{a4Input || '&nbsp;'}</div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('1')}>1</button>
+              <button onClick={() => handleKeyPress('2')}>2</button>
+              <button onClick={() => handleKeyPress('3')}>3</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('4')}>4</button>
+              <button onClick={() => handleKeyPress('5')}>5</button>
+              <button onClick={() => handleKeyPress('6')}>6</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('7')}>7</button>
+              <button onClick={() => handleKeyPress('8')}>8</button>
+              <button onClick={() => handleKeyPress('9')}>9</button>
+            </div>
+            <div className="keyboard-row">
+              <button onClick={() => handleKeyPress('clear')}>C</button>
+              <button onClick={() => handleKeyPress('0')}>0</button>
+              <button onClick={() => handleKeyPress('backspace')}>&lt;</button>
+            </div>
+            <button className="done-btn" onClick={handleDone} disabled={a4Input === '0'}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </>
   )
