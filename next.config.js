@@ -1,7 +1,5 @@
 // next.config.js
-const repo = process.env.GITHUB_REPOSITORY
-  ? process.env.GITHUB_REPOSITORY.split('/')[1]
-  : ''; // <user>/<repo> → repo 抜き出し
+const repo = 'web-tuner-metronome';           // ★ リポジトリ名
 const isPages = process.env.GITHUB_ACTIONS === 'true';
 const basePath = isPages ? `/${repo}` : '';
 
@@ -9,15 +7,16 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  // GitHub Pages 配信に合わせて SW のスコープを合わせる
+  // ★ サービスワーカーのスコープをサブパスに合わせる（未指定時は basePath）
   scope: `${basePath}/`,
 });
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  basePath,                // ★ 重要
-  assetPrefix: basePath,   // ★ 重要（/_next/* などの参照先を補正）
+  basePath,              // ★ 必須：/web-tuner-metronome
+  assetPrefix: basePath, // ★ 必須：/_next/* 等の参照を補正
   trailingSlash: true,
   images: { unoptimized: true },
 };

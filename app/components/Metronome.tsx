@@ -1,6 +1,48 @@
-'use client'
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+// Beat visualizer component to prevent re-rendering of the whole metronome
+interface BeatVisualizerProps {
+  timeSignature: number;
+  currentBeat: number;
+  rhythmPattern: boolean[];
+}
+
+const BeatVisualizer: React.FC<BeatVisualizerProps> = React.memo(({ timeSignature, currentBeat, rhythmPattern }) => {
+  return (
+    <svg width="100%" height="50" viewBox="0 0 400 50">
+      {(() => {
+        let maxBeats = 16; // default 4/4
+        if (timeSignature === 0) maxBeats = 8;  // 2/4
+        if (timeSignature === 1) maxBeats = 12; // 3/4
+        if (timeSignature === 3) maxBeats = 12; // 6/8
+
+        const circles = [];
+        const spacing = 400 / (maxBeats + 2);
+        
+        for (let i = 0; i < maxBeats; i++) {
+          let fillColor = rhythmPattern[i] ? 'lightblue' : '#ebf6f7';
+          if (currentBeat === i) {
+            fillColor = rhythmPattern[i] ? 'dodgerblue' : 'green';
+          }
+          
+          circles.push(
+            <circle
+              key={i}
+              cx={spacing * (i + 1) + spacing / 2}
+              cy={25}
+              r={8}
+              fill={fillColor}
+            />
+          );
+        }
+        
+        return circles;
+      })()} 
+    </svg>
+  );
+});
+
+BeatVisualizer.displayName = 'BeatVisualizer';
 
 export default function Metronome() {
   const [tempo, setTempo] = useState(80)
@@ -19,6 +61,37 @@ export default function Metronome() {
   const notesInQueueRef = useRef<Array<{note: number, time: number}>>([])
   const last16thNoteDrawnRef = useRef(-1)
   const isPlayingRef = useRef(false)
+  const [rhythmPattern, setRhythmPattern] = useState<boolean[]>(new Array(16).fill(false))
+
+  useEffect(() => {
+    let maxBeats = 16 // default 4/4
+    if (timeSignature === 0) maxBeats = 8  // 2/4
+    if (timeSignature === 1) maxBeats = 12 // 3/4
+    if (timeSignature === 3) maxBeats = 12 // 6/8
+    setRhythmPattern(new Array(maxBeats).fill(false))
+  }, [timeSignature])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === ' ') {
+        event.preventDefault()
+        if (!isPlaying) return
+
+        setRhythmPattern(prevPattern => {
+          const newPattern = [...prevPattern]
+          const beatToToggle = current16thNoteRef.current
+          newPattern[beatToToggle] = !newPattern[beatToToggle]
+          return newPattern
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isPlaying])
 
   useEffect(() => {
     setTempoInput(String(tempo))
@@ -52,15 +125,14 @@ export default function Metronome() {
     timerWorkerRef.current = worker
 
     worker.onmessage = (e) => {
-      console.log('Worker message received:', e.data, 'isPlayingRef:', isPlayingRef.current)
       if (e.data === 'tick') {
-        console.log('Worker tick received, calling scheduler')
         scheduler()
       }
     }
 
     worker.postMessage({ interval: 25 })
 
+    let animationFrameId: number;
     const updateBeat = () => {
       const audioContext = audioContextRef.current
       
@@ -78,7 +150,7 @@ export default function Metronome() {
           }
         }
       }
-      requestAnimationFrame(updateBeat)
+      animationFrameId = requestAnimationFrame(updateBeat)
     }
 
     updateBeat()
@@ -86,12 +158,13 @@ export default function Metronome() {
     return () => {
       worker.terminate()
       URL.revokeObjectURL(blob.toString())
+      cancelAnimationFrame(animationFrameId);
     }
-  }, [noteResolution, timeSignature, tempo, isSound])
+  }, []) // Removed dependencies to prevent re-creation
 
   const nextNote = useCallback(() => {
-    const secondsPerBeat = 60.0 / tempo
-    // For 6/8 time, use 8th note timing (1/8 of a beat)
+    const currentTempo = Math.max(30, Math.min(160, tempo));
+    const secondsPerBeat = 60.0 / currentTempo;
     const timeIncrement = timeSignature === 3 ? (1.0 / 8.0) * secondsPerBeat : 0.25 * secondsPerBeat
     nextNoteTimeRef.current += timeIncrement
     current16thNoteRef.current++
@@ -99,7 +172,7 @@ export default function Metronome() {
     if (timeSignature === 0) maxBeats = 8  // 2/4
     if (timeSignature === 1) maxBeats = 12 // 3/4
     if (timeSignature === 3) maxBeats = 12 // 6/8 (12 eighth notes)
-    if (current16thNoteRef.current === maxBeats) {
+    if (current16thNoteRef.current >= maxBeats) {
       current16thNoteRef.current = 0
     }
   }, [tempo, timeSignature])
@@ -107,117 +180,89 @@ export default function Metronome() {
   const scheduleNote = useCallback((beatNumber: number, time: number) => {
     notesInQueueRef.current.push({ note: beatNumber, time })
 
-    // Skip notes based on time signature and resolution
-    if (timeSignature === 0) { // 2/4 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4) return // Quarter: 1st and 5th
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7
-      // 16th: all beats (no skip)
-    } else if (timeSignature === 1) { // 3/4 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 4 && beatNumber !== 8) return // Quarter: 1,5,9
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
-      // 16th: all beats (no skip)
-    } else if (timeSignature === 3) { // 6/8 time
-      if (noteResolution === 2 && beatNumber !== 0 && beatNumber !== 6) return // Dotted quarter: 1st and 7th (every 6 beats)
-      if (noteResolution === 1 && beatNumber % 2 !== 0) return // 8th: 1,3,5,7,9,11
-      // 16th: all beats (no skip)
+    const userHasRhythm = rhythmPattern.some(v => v);
+
+    if (userHasRhythm) {
+      if (!rhythmPattern[beatNumber]) {
+        return;
+      }
     } else {
-      // Other time signatures (keep original logic)
-      if (noteResolution === 1 && (beatNumber % 2 !== 0)) return
-      if (noteResolution === 2 && (beatNumber % 4 !== 0)) return
+      if (timeSignature === 0) { // 2/4 time
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      } else if (timeSignature === 1) { // 3/4 time
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      } else if (timeSignature === 3) { // 6/8 time
+        if (noteResolution === 2 && beatNumber % 6 !== 0) return
+        if (noteResolution === 1 && beatNumber % 3 !== 0) return
+      } else { // 4/4
+        if (noteResolution === 2 && beatNumber % 4 !== 0) return
+        if (noteResolution === 1 && beatNumber % 2 !== 0) return
+      }
     }
 
     const audioContext = audioContextRef.current
     if (!audioContext) return
 
     if (isSound) {
-      // Create click sound using noise and filtering
       const osc = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
-      const filter = audioContext.createBiquadFilter()
       
       osc.type = 'square'
-      // 6/8 time signature with 8th notes: emphasize 1st and 7th beats
-      if (timeSignature === 3 && noteResolution === 1 && (beatNumber === 0 || beatNumber === 6)) {
-        osc.frequency.value = 1200 // Higher pitch for emphasis
-      } else {
-        osc.frequency.value = beatNumber % 4 === 0 ? 1000 : 800
+      if (timeSignature === 3) { // 6/8 time
+          osc.frequency.value = (beatNumber === 0 || beatNumber === 6) ? 1200 : 800
+      } else { // Other time signatures
+          osc.frequency.value = beatNumber % (16 / (timeSignature === 0 ? 8 : timeSignature === 1 ? 12 : 16)) === 0 ? 1000 : 800
       }
-      
-      filter.type = 'highpass'
-      filter.frequency.value = 1000
-      
-      osc.connect(filter)
-      filter.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-      
-      // Sharp attack and quick decay for click sound
+
       gainNode.gain.setValueAtTime(0, time)
       gainNode.gain.linearRampToValueAtTime(0.3, time + 0.001)
       gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.02)
       
+      osc.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
       osc.start(time)
       osc.stop(time + 0.02)
     }
-  }, [timeSignature, noteResolution, isSound, tempo])
+  }, [timeSignature, noteResolution, isSound, tempo, rhythmPattern])
 
   const scheduler = useCallback(() => {
     const audioContext = audioContextRef.current
     if (!audioContext || !isPlayingRef.current) {
-      console.log('Scheduler exit - audioContext:', !!audioContext, 'isPlayingRef:', isPlayingRef.current)
       return
     }
 
-    console.log('Scheduler called, currentTime:', audioContext.currentTime, 'nextNoteTime:', nextNoteTimeRef.current)
     while (nextNoteTimeRef.current < audioContext.currentTime + 0.1) {
-      console.log('Scheduling note:', current16thNoteRef.current, 'at time:', nextNoteTimeRef.current)
       scheduleNote(current16thNoteRef.current, nextNoteTimeRef.current)
       nextNote()
     }
   }, [scheduleNote, nextNote])
 
   const handlePlay = async () => {
-    console.log('handlePlay called, isPlaying:', isPlaying)
-    
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
-      console.log('AudioContext created')
     }
 
     const audioContext = audioContextRef.current
-    console.log('AudioContext state:', audioContext.state)
     
     if (audioContext.state === 'suspended') {
       await audioContext.resume()
-      console.log('AudioContext resumed')
-    }
-
-    // Unlock audio context with a silent buffer
-    if (audioContext.state === 'running') {
-      const buffer = audioContext.createBuffer(1, 1, 22050)
-      const source = audioContext.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContext.destination)
-      source.start(0)
-      console.log('Silent buffer played')
     }
 
     if (!isPlaying) {
-      console.log('Starting metronome')
       current16thNoteRef.current = 0
       nextNoteTimeRef.current = audioContext.currentTime
-      console.log('nextNoteTime set to:', nextNoteTimeRef.current)
       isPlayingRef.current = true
       setIsPlaying(true)
       timerWorkerRef.current?.postMessage('start')
-      console.log('Worker start message sent')
     } else {
-      console.log('Stopping metronome')
       isPlayingRef.current = false
       setIsPlaying(false)
       timerWorkerRef.current?.postMessage('stop')
       notesInQueueRef.current = []
       setCurrentBeat(-1)
-      console.log('Worker stop message sent')
     }
   }
 
@@ -275,7 +320,7 @@ export default function Metronome() {
           <div className="tempo-stepper">
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.max(30, tempo - 1))}
+              onClick={() => handlePlusMinusClick(tempo - 1)}
             >
               −
             </button>
@@ -288,7 +333,7 @@ export default function Metronome() {
             />
             <button 
               className="tempo-btn" 
-              onClick={() => setTempo(Math.min(160, tempo + 1))}
+              onClick={() => handlePlusMinusClick(tempo + 1)}
             >
               +
             </button>
@@ -300,20 +345,21 @@ export default function Metronome() {
               className={`resolution-btn ${noteResolution === 2 ? 'active' : ''}`}
               onClick={() => setNoteResolution(2)}
             >
-              {timeSignature === 3 ? '付点4分音符' : '4分音符'}
+              {timeSignature === 3 ? 'Dotted Quarter' : 'Quarter'}
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 1 ? 'active' : ''}`}
               onClick={() => setNoteResolution(1)}
             >
-              8分音符
+              8th
             </button>
             <button 
               className={`resolution-btn ${noteResolution === 0 ? 'active' : ''}`}
               onClick={() => setNoteResolution(0)}
             >
-              16分音符
+              16th
             </button>
+            <button onClick={clearRhythm}>Clear Rhythm</button>
           </div>
         </div>
         <div className="time-signature-controls">
@@ -347,49 +393,7 @@ export default function Metronome() {
 
       </div>
       <div className="beatCanvas">
-        <svg width="100%" height="50" viewBox="0 0 400 50">
-          {(() => {
-            let beatsCount = 4 // default 4/4
-            if (timeSignature === 0) beatsCount = 2  // 2/4
-            if (timeSignature === 1) beatsCount = 3  // 3/4
-            if (timeSignature === 3) beatsCount = 2  // 6/8
-            
-            const circles = []
-            const spacing = 400 / (beatsCount + 2)
-            
-            for (let i = 0; i < beatsCount; i++) {
-              let fillColor = '#ebf6f7'
-              
-              // Map internal beat counter to visual beat
-              let isCurrentBeat = false
-              if (timeSignature === 0) { // 2/4
-                isCurrentBeat = currentBeat === i * 4
-              } else if (timeSignature === 1) { // 3/4
-                isCurrentBeat = currentBeat === i * 4
-              } else if (timeSignature === 2) { // 4/4
-                isCurrentBeat = currentBeat === i * 4
-              } else if (timeSignature === 3) { // 6/8
-                isCurrentBeat = currentBeat === i * 6
-              }
-              
-              if (isCurrentBeat) {
-                fillColor = i === 0 ? 'crimson' : 'green'
-              }
-              
-              circles.push(
-                <circle
-                  key={i}
-                  cx={spacing * (i + 1) + spacing / 2}
-                  cy={25}
-                  r={12}
-                  fill={fillColor}
-                />
-              )
-            }
-            
-            return circles
-          })()} 
-        </svg>
+        <BeatVisualizer timeSignature={timeSignature} currentBeat={currentBeat} rhythmPattern={rhythmPattern} />
       </div>
 
       {isCustomKeyboardOpen && (
