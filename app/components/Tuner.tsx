@@ -279,7 +279,10 @@ export default function Tuner() {
                   type="text"
                   readOnly
                   value={a4}
-                  onClick={() => setIsCustomKeyboardOpen(true)}
+                  onClick={() => {
+                    setA4Input('0');
+                    setIsCustomKeyboardOpen(true);
+                  }}
                   className="a4-input"
                 />
                 <button 

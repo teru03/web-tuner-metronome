@@ -283,7 +283,10 @@ export default function Metronome() {
               type="text"
               readOnly
               value={tempo}
-              onClick={() => setIsCustomKeyboardOpen(true)}
+              onClick={() => {
+                setTempoInput('0');
+                setIsCustomKeyboardOpen(true);
+              }}
               className="tempo-input"
             />
             <button 
