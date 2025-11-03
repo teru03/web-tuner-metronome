@@ -11,8 +11,8 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  padding: 3px; /* 5px -> 3px */
-  gap: 8px; /* 10px -> 8px */
+  padding: 5px;
+  gap: 10px;
   width: 100%;
   max-width: 100vw;
   height: 100vh;
@@ -21,7 +21,7 @@ body {
 
 .box-metronome {
   background-color: #333631;
-  padding: 8px; /* 10px -> 8px */
+  padding: 10px;
   flex: 1;
   min-height: 0;
   position: relative;
@@ -29,7 +29,7 @@ body {
 
 .box-tuner {
   background-color: #333631;
-  padding: 8px; /* 10px -> 8px */
+  padding: 10px;
   flex: 1;
   min-height: 0;
   position: relative;
@@ -40,10 +40,10 @@ body {
   position: absolute;
   flex-direction: column;
   display: flex;
-  top: 8px; /* 10px -> 8px */
-  left: 8px; /* 10px -> 8px */
-  right: 8px; /* 20px -> 8px */
-  height: 255px; /* 270px -> 255px */
+  top: 10px;
+  left: 10px;
+  right: 20px;
+  height: 270px;
   font-family: arial;
   font-size: 24px;
   font-weight: bold;
@@ -53,7 +53,7 @@ body {
 }
 
 .metronome-controls * {
-  margin: 4px; /* 5px -> 4px */
+  margin: 5px;
   display: inline-block;
 }
 
@@ -61,11 +61,11 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px; /* 5px -> 4px */
+  padding: 5px;
 }
 
 .metronome-start-btn {
-  padding: 8px 16px; /* 10px 20px -> 8px 16px */
+  padding: 10px 20px;
   font-size: 16px;
   background-color: #68be8d;
   color: white;
@@ -103,17 +103,17 @@ body {
   display: flex;
   align-items: center;
   gap: 0;
-  margin-top: 8px; /* 10px -> 8px */
+  margin-top: 10px;
   width: 100%;
 }
 
 .tempo-btn {
-  width: 75px; /* 80px -> 75px */
-  height: 75px; /* 80px -> 75px */
+  width: 80px;
+  height: 80px;
   border: 1px solid #ccc;
   background: #80989b;
   color: white;
-  font-size: 36px; /* 40px -> 36px */
+  font-size: 40px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -140,12 +140,12 @@ body {
 
 .tempo-input {
   flex: 1;
-  height: 75px; /* 80px -> 75px */
+  height: 80px;
   border: 1px solid #ccc;
   border-left: none;
   border-right: none;
   text-align: center;
-  font-size: 30px; /* 32px -> 30px */
+  font-size: 32px;
   font-weight: bold;
   outline: none;
 }
@@ -158,7 +158,7 @@ body {
 .resolution-controls {
   display: flex;
   align-items: center;
-  gap: 8px; /* 10px -> 8px */
+  gap: 10px;
 }
 
 .resolution-buttons {
@@ -169,11 +169,11 @@ body {
 
 .resolution-btn {
   flex: 1;
-  padding: 6px 12px; /* 8px 16px -> 6px 12px */
+  padding: 8px 16px;
   border: 1px solid #ccc;
   background: #80989b;
   color: white;
-  font-size: 15px; /* 16px -> 15px */
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   user-select: none;
@@ -200,7 +200,7 @@ body {
 .time-signature-controls {
   display: flex;
   align-items: center;
-  gap: 8px; /* 10px -> 8px */
+  gap: 10px;
 }
 
 .time-signature-buttons {
@@ -211,11 +211,11 @@ body {
 
 .time-signature-btn {
   flex: 1;
-  padding: 6px 12px; /* 8px 16px -> 6px 12px */
+  padding: 8px 16px;
   border: 1px solid #ccc;
   background: #80989b;
   color: white;
-  font-size: 15px; /* 16px -> 15px */
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   user-select: none;
@@ -242,10 +242,10 @@ body {
 .beatCanvas {
   background-color: #333631;
   position: absolute;
-  top: 270px; /* 320px -> 270px */
-  left: 8px; /* 20px -> 8px */
-  right: 8px; /* 20px -> 8px */
-  height: 45px; /* 50px -> 45px */
+  top: 320px;
+  left: 20px;
+  right: 20px;
+  height: 50px;
   display: block;
 }
 
@@ -257,9 +257,9 @@ body {
 
 .notes-wrapper {
   position: absolute;
-  top: 80px; /* 100px -> 80px */
-  left: 8px; /* 20px -> 8px */
-  right: 8px; /* 20px -> 8px */
+  top: 100px;
+  left: 20px;
+  right: 20px;
   width: auto;
   max-width: none;
   margin: 0;
@@ -278,8 +278,8 @@ body {
   white-space: nowrap;
   min-width: max-content;
   font-family: sans-serif;
-  font-size: 70px; /* 80px -> 70px */
-  padding: 10px 0; /* 20px -> 10px */
+  font-size: 80px;
+  padding: 20px 0;
   text-align: center;
 }
 
@@ -289,7 +289,7 @@ body {
 
 .note {
   display: inline-block;
-  margin: 0 18px; /* 20px -> 18px */
+  margin: 0 20px;
   color: #7f8c8d;
   font-weight: bold;
   cursor: pointer;
@@ -301,10 +301,10 @@ body {
 
 .frequency {
   position: absolute;
-  top: 190px; /* 220px -> 190px */
-  left: 8px; /* 20px -> 8px */
-  right: 8px; /* 20px -> 8px */
-  font-size: 30px; /* 32px -> 30px */
+  top: 220px;
+  left: 20px;
+  right: 20px;
+  font-size: 32px;
   text-align: center;
   margin: 0;
   color: #ebf6f7;
@@ -319,10 +319,10 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 3%; /* 5% -> 3% */
+  bottom: 5%;
   width: 100%;
   max-width: 400px;
-  height: 22%; /* 25% -> 22% */
+  height: 25%;
   margin: 0 auto;
 }
 
@@ -532,108 +532,5 @@ body {
 @media (max-width: 768px) {
   .meter {
     width: 100%;
-  }
-}
-
-@media (orientation: landscape) and (max-height: 450px) {
-  .container {
-    padding: 2px;
-    gap: 5px;
-  }
-
-  .box-metronome, .box-tuner {
-    padding: 5px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* 垂直方向の中央揃え */
-  }
-
-  /* --- Metronome Adjustments --- */
-
-  .metronome-controls {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    top: auto; left: auto; right: auto;
-  }
-
-  .metronome-controls * {
-    margin: 2px;
-  }
-
-  .metronome-play {
-    padding: 2px;
-  }
-
-  .tempo-stepper {
-    margin-top: 5px;
-  }
-
-  .tempo-btn {
-    width: 45px;
-    height: 45px;
-    font-size: 22px;
-  }
-
-  .tempo-input {
-    height: 45px;
-    font-size: 22px;
-  }
-
-  .resolution-btn, .time-signature-btn {
-    padding: 4px 6px;
-    font-size: 12px;
-  }
-
-  .beatCanvas {
-    position: relative;
-    height: 30px;
-    margin-top: 5px;
-    width: 100%;
-    top: auto; left: auto; right: auto;
-  }
-
-  /* --- Tuner Adjustments --- */
-
-  .tuner-controls {
-    position: relative;
-    height: auto;
-    padding: 0;
-    width: 100%;
-    top: auto; left: auto; right: auto;
-  }
-
-  .meter {
-    position: relative;
-    transform: none;
-    left: auto;
-    bottom: auto;
-    width: 100%;
-    height: 50px; /* 高さを固定 */
-    flex-shrink: 0;
-    margin-top: 5px;
-  }
-
-  .notes-wrapper {
-    position: relative;
-    top: auto; left: auto; right: auto;
-    width: 100%;
-    margin-top: 5px;
-  }
-
-  .notes-list {
-    font-size: 40px;
-    padding: 5px 0;
-  }
-
-  .frequency {
-    position: relative;
-    top: auto; left: auto; right: auto;
-    font-size: 20px;
-    margin-top: 5px;
   }
 }
