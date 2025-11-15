@@ -491,6 +491,25 @@ body {
   }
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Styles for phones in landscape */
+  .tempo-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    box-sizing: border-box;
+  }
+
+  .tempo-input {
+    width: calc(100% - (2 * 60px)); /* 100% minus two buttons */
+    flex: none; /* Remove flex: 1 as width is now explicit */
+    height: 60px;
+    font-size: 28px;
+    box-sizing: border-box;
+  }
+}
+
 @media (min-width: 769px) {
   .container {
     flex-direction: row;
