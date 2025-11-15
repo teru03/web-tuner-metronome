@@ -270,6 +270,7 @@ export default function Tuner() {
                   onClick={() => {
                     const newA4 = Math.max(400, a4 - 1)
                     setA4(newA4)
+                    setA4Input(String(newA4))
                     localStorage.setItem('a4', newA4.toString())
                   }}
                 >
@@ -280,7 +281,7 @@ export default function Tuner() {
                   readOnly
                   value={a4}
                   onClick={() => {
-                    setA4Input('0');
+                    setA4Input(String(a4));
                     setIsCustomKeyboardOpen(true);
                   }}
                   className="a4-input"
@@ -290,6 +291,7 @@ export default function Tuner() {
                   onClick={() => {
                     const newA4 = Math.min(480, a4 + 1)
                     setA4(newA4)
+                    setA4Input(String(newA4))
                     localStorage.setItem('a4', newA4.toString())
                   }}
                 >
@@ -301,46 +303,46 @@ export default function Tuner() {
           </div>
         </div>
         <div className="meter">
-        <div className="meter-dot"></div>
-        <div className="meter-pointer" ref={meterPointerRef}></div>
-      </div>
-      <div className="notes-wrapper" ref={notesWrapperRef}>
-        <div className="notes-list" ref={notesListRef}></div>
-      </div>
-      <div className="frequency" ref={frequencyRef}>
-        <span>Hz</span>
-      </div>
-
-      {isCustomKeyboardOpen && (
-        <div className="custom-keyboard-overlay" onClick={handleCancel}>
-          <div className="custom-keyboard" onClick={(e) => e.stopPropagation()}>
-            <div className="tempo-display">{a4Input || '&nbsp;'}</div>
-            <div className="keyboard-row">
-              <button onClick={() => handleKeyPress('1')}>1</button>
-              <button onClick={() => handleKeyPress('2')}>2</button>
-              <button onClick={() => handleKeyPress('3')}>3</button>
-            </div>
-            <div className="keyboard-row">
-              <button onClick={() => handleKeyPress('4')}>4</button>
-              <button onClick={() => handleKeyPress('5')}>5</button>
-              <button onClick={() => handleKeyPress('6')}>6</button>
-            </div>
-            <div className="keyboard-row">
-              <button onClick={() => handleKeyPress('7')}>7</button>
-              <button onClick={() => handleKeyPress('8')}>8</button>
-              <button onClick={() => handleKeyPress('9')}>9</button>
-            </div>
-            <div className="keyboard-row">
-              <button onClick={() => handleKeyPress('clear')}>C</button>
-              <button onClick={() => handleKeyPress('0')}>0</button>
-              <button onClick={() => handleKeyPress('backspace')}>&lt;</button>
-            </div>
-            <button className="done-btn" onClick={handleDone} disabled={a4Input === '0'}>
-              Done
-            </button>
-          </div>
+          <div className="meter-dot"></div>
+          <div className="meter-pointer" ref={meterPointerRef}></div>
         </div>
-      )}
+        <div className="notes-wrapper" ref={notesWrapperRef}>
+          <div className="notes-list" ref={notesListRef}></div>
+        </div>
+        <div className="frequency" ref={frequencyRef}>
+          <span>Hz</span>
+        </div>
+
+        {isCustomKeyboardOpen && (
+          <div className="custom-keyboard-overlay" onClick={handleCancel}>
+            <div className="custom-keyboard" onClick={(e) => e.stopPropagation()}>
+              <div className="tempo-display">{a4Input || '&nbsp;'}</div>
+              <div className="keyboard-row">
+                <button onClick={() => handleKeyPress('1')}>1</button>
+                <button onClick={() => handleKeyPress('2')}>2</button>
+                <button onClick={() => handleKeyPress('3')}>3</button>
+              </div>
+              <div className="keyboard-row">
+                <button onClick={() => handleKeyPress('4')}>4</button>
+                <button onClick={() => handleKeyPress('5')}>5</button>
+                <button onClick={() => handleKeyPress('6')}>6</button>
+              </div>
+              <div className="keyboard-row">
+                <button onClick={() => handleKeyPress('7')}>7</button>
+                <button onClick={() => handleKeyPress('8')}>8</button>
+                <button onClick={() => handleKeyPress('9')}>9</button>
+              </div>
+              <div className="keyboard-row">
+                <button onClick={() => handleKeyPress('clear')}>C</button>
+                <button onClick={() => handleKeyPress('0')}>0</button>
+                <button onClick={() => handleKeyPress('backspace')}>&lt;</button>
+              </div>
+              <button className="done-btn" onClick={handleDone} disabled={a4Input === '0'}>
+                Done
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

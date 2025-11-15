@@ -52,9 +52,7 @@ export default function Metronome() {
     timerWorkerRef.current = worker
 
     worker.onmessage = (e) => {
-      console.log('Worker message received:', e.data, 'isPlayingRef:', isPlayingRef.current)
       if (e.data === 'tick') {
-        console.log('Worker tick received, calling scheduler')
         scheduler()
       }
     }
@@ -163,32 +161,24 @@ export default function Metronome() {
   const scheduler = useCallback(() => {
     const audioContext = audioContextRef.current
     if (!audioContext || !isPlayingRef.current) {
-      console.log('Scheduler exit - audioContext:', !!audioContext, 'isPlayingRef:', isPlayingRef.current)
       return
     }
 
-    console.log('Scheduler called, currentTime:', audioContext.currentTime, 'nextNoteTime:', nextNoteTimeRef.current)
     while (nextNoteTimeRef.current < audioContext.currentTime + 0.1) {
-      console.log('Scheduling note:', current16thNoteRef.current, 'at time:', nextNoteTimeRef.current)
       scheduleNote(current16thNoteRef.current, nextNoteTimeRef.current)
       nextNote()
     }
   }, [scheduleNote, nextNote])
 
   const handlePlay = async () => {
-    console.log('handlePlay called, isPlaying:', isPlaying)
-    
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext()
-      console.log('AudioContext created')
     }
 
     const audioContext = audioContextRef.current
-    console.log('AudioContext state:', audioContext.state)
     
     if (audioContext.state === 'suspended') {
       await audioContext.resume()
-      console.log('AudioContext resumed')
     }
 
     // Unlock audio context with a silent buffer
@@ -198,26 +188,20 @@ export default function Metronome() {
       source.buffer = buffer
       source.connect(audioContext.destination)
       source.start(0)
-      console.log('Silent buffer played')
     }
 
     if (!isPlaying) {
-      console.log('Starting metronome')
       current16thNoteRef.current = 0
       nextNoteTimeRef.current = audioContext.currentTime
-      console.log('nextNoteTime set to:', nextNoteTimeRef.current)
       isPlayingRef.current = true
       setIsPlaying(true)
       timerWorkerRef.current?.postMessage('start')
-      console.log('Worker start message sent')
     } else {
-      console.log('Stopping metronome')
       isPlayingRef.current = false
       setIsPlaying(false)
       timerWorkerRef.current?.postMessage('stop')
       notesInQueueRef.current = []
       setCurrentBeat(-1)
-      console.log('Worker stop message sent')
     }
   }
 
@@ -284,7 +268,7 @@ export default function Metronome() {
               readOnly
               value={tempo}
               onClick={() => {
-                setTempoInput('0');
+                setTempoInput(String(tempo));
                 setIsCustomKeyboardOpen(true);
               }}
               className="tempo-input"
@@ -347,7 +331,6 @@ export default function Metronome() {
             </button>
           </div>
         </div>
-
       </div>
       <div className="beatCanvas">
         <svg width="100%" height="50" viewBox="0 0 400 50">

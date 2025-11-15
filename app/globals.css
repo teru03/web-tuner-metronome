@@ -5,7 +5,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent body scrolling */
 }
 
 .container {
@@ -14,7 +14,6 @@ body {
   padding: 5px;
   gap: 10px;
   width: 100%;
-  max-width: 100vw;
   height: 100vh;
   box-sizing: border-box;
 }
@@ -23,27 +22,30 @@ body {
   background-color: #333631;
   padding: 10px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   position: relative;
+  gap: 10px;
+  overflow-y: auto;
 }
 
 .box-tuner {
   background-color: #333631;
   padding: 10px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   position: relative;
   overflow: hidden;
+  gap: 10px;
 }
 
 .metronome-controls {
-  position: absolute;
-  flex-direction: column;
   display: flex;
-  top: 10px;
-  left: 10px;
-  right: 20px;
-  height: 270px;
+  flex-direction: column;
+  gap: 10px;
   font-family: arial;
   font-size: 24px;
   font-weight: bold;
@@ -53,7 +55,7 @@ body {
 }
 
 .metronome-controls * {
-  margin: 5px;
+  margin: 0;
   display: inline-block;
 }
 
@@ -61,7 +63,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px;
+  padding: 5px 0;
 }
 
 .metronome-start-btn {
@@ -72,7 +74,6 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin: 0;
 }
 
 .metronome-start-btn:hover {
@@ -103,7 +104,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0;
-  margin-top: 10px;
   width: 100%;
 }
 
@@ -241,10 +241,6 @@ body {
 
 .beatCanvas {
   background-color: #333631;
-  position: absolute;
-  top: 320px;
-  left: 20px;
-  right: 20px;
   height: 50px;
   display: block;
 }
@@ -256,17 +252,11 @@ body {
 }
 
 .notes-wrapper {
-  position: absolute;
-  top: 100px;
-  left: 20px;
-  right: 20px;
   width: auto;
-  max-width: none;
-  margin: 0;
+  max-width: 100%;
   overflow-x: auto;
   mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-  flex-direction: row;
 }
 
 .notes-wrapper::-webkit-scrollbar {
@@ -300,13 +290,8 @@ body {
 }
 
 .frequency {
-  position: absolute;
-  top: 220px;
-  left: 20px;
-  right: 20px;
   font-size: 32px;
   text-align: center;
-  margin: 0;
   color: #ebf6f7;
 }
 
@@ -316,13 +301,10 @@ body {
 }
 
 .meter {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 5%;
+  position: relative;
   width: 100%;
   max-width: 400px;
-  height: 25%;
+  height: 100px;
   margin: 0 auto;
 }
 
@@ -334,7 +316,7 @@ body {
   transform-origin: bottom;
   transition: transform 0.5s;
   position: absolute;
-  right: 50%;
+  left: 50%;
 }
 
 .meter-dot {
@@ -344,8 +326,8 @@ body {
   border-radius: 50%;
   position: absolute;
   bottom: -5px;
-  right: 50%;
-  margin-right: -4px;
+  left: 50%;
+  margin-left: -5px;
 }
 
 .meter-scale {
@@ -356,7 +338,7 @@ body {
   box-sizing: border-box;
   border-top: 10px solid;
   position: absolute;
-  right: 50%;
+  left: 50%;
 }
 
 .meter-scale-strong {
@@ -385,7 +367,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
   color: #ebf6f7;
 }
 
@@ -396,17 +377,12 @@ body {
 }
 
 .tuner-controls {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  height: 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #333631;
   color: #ebf6f7;
-  padding: 10px;
+  padding: 10px 0;
   box-sizing: border-box;
   font-family: arial;
   font-size: 18px;
@@ -428,7 +404,6 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin: 0;
 }
 
 .tuner-start-btn:hover {
@@ -508,6 +483,12 @@ body {
   .container {
     flex-direction: row;
   }
+  .box-metronome {
+    overflow-y: auto;
+  }
+  .box-tuner {
+    overflow-y: auto;
+  }
 }
 
 @media (min-width: 769px) {
@@ -532,6 +513,24 @@ body {
 @media (max-width: 768px) {
   .meter {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .tempo-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    box-sizing: border-box;
+  }
+
+  .tempo-input {
+    width: calc(100% - (2 * 60px)); /* 100% minus two buttons */
+    flex: none; /* Remove flex: 1 as width is now explicit */
+    height: 60px;
+    font-size: 28px;
+    box-sizing: border-box;
   }
 }
 
